@@ -21,3 +21,7 @@ ez_lang-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# Generated leex and yecc code
+/src/opal_lexer.erl
+/src/opal_parser.erl
