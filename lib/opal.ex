@@ -7,6 +7,10 @@ defmodule Opal do
   alias Opal.Parser
   alias Opal.Compiler
 
+  def tokenize(code) do
+    Lexer.tokenize(code)
+  end
+
   def parse(code) do
     with {:ok, tokens} <- Lexer.tokenize(code) do
       Parser.parse(tokens)
