@@ -51,4 +51,21 @@ defmodule Opal.Evaluator do
       {left_val / right_val, env2}
     end
   end
+
+  #variable reference
+  defp do_eval({:var, name}, env) do
+    case Environment.lookup(env, name) do
+      {:ok, value} -> {value, env}
+      {:error, :undefined_variable} -> raise "Undefined variable: #{name}"
+    end
+  end
+
+  # Variable definition
+  defp do_eval({:def, name, expr}, env) do
+    {value, env1} = do_eval(expr, env)
+    {value, Environment.define(env1, name, value)}
+  end
+
+
+
 end
