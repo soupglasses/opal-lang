@@ -1,4 +1,4 @@
-defmodule Opal.Enviroment do
+defmodule Opal.Environment do
   @moduledoc """
   Environment store for the Opal Language
 
