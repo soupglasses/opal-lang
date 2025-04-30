@@ -5,10 +5,20 @@ defmodule Opal do
 
   alias Opal.Lexer
   alias Opal.Parser
+  alias Opal.Compiler
 
   def parse(code) do
     with {:ok, tokens} <- Lexer.tokenize(code) do
       Parser.parse(tokens)
+    else
+      err -> err
+    end
+  end
+
+  def run(code) do
+    with {:ok, tokens} <- Lexer.tokenize(code),
+         {:ok, ast} <- Parser.parse(tokens) do
+      Compiler.run(ast)
     else
       err -> err
     end
