@@ -3,6 +3,7 @@ Definitions.
 INT        = [0-9]+
 FLOAT      = [0-9]+\.[0-9]+([eE][+-]?[0-9]+)?
 WHITESPACE = [\s\t\n\r]
+IDENTIFIER = [a-zA-Z_][a-zA-Z0-9_]*
 
 Rules.
 
@@ -16,5 +17,8 @@ Rules.
 \(            : {token, {'(', TokenLoc}}.
 \)            : {token, {')', TokenLoc}}.
 %.             : {error, {illegal, TokenLoc, TokenChars}}.
+
+let           : {token, {'let', TokenLoc}}.
+{IDENTIFIER}  : {token, {identifier, TokenLoc, list_to_atom(TokenChars)}}.
 
 Erlang code.

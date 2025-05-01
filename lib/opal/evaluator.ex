@@ -66,6 +66,29 @@ defmodule Opal.Evaluator do
     {value, Environment.define(env1, name, value)}
   end
 
+   # Block of expressions with a new scope
+   defp do_eval({:block, exprs}, env) do
+    # Create a new environment that extends the current one
+    block_env = Environment.extend(env)
 
+    # Evalaute all expressions in the block environment
+    {result, final_block_env} = Enum.reduce(exprs, {nil, block_env}, fn expr, {_, acc_env} ->
+      do_eval(expr, acc_env)
+    end)
 
+    # End of block, returns result with original environment
+    {result, env}
+  end
+
+  # Block of expressions without a new scope
+  defp do_eval({:seq, exprs}, env) do
+    Enum.reduce(exprs, {nil, env}, fn expr, {_, acc_env} ->
+      do_eval(expr, acc_env)
+    end)
+  end
+
+  # Handle unrecognized AST nodes
+  defp do_eval(unknown, _env) do
+    raise "Unknown expression: #{inspect(unknown)}"
+  end
 end
