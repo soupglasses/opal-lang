@@ -15,29 +15,8 @@ Rules.
 \(            : {token, {'(', TokenLoc}}.
 \)            : {token, {')', TokenLoc}}.
 %.             : {error, {illegal, TokenLoc, TokenChars}}.
-\{            : {token, {'{', TokenLoc}}.
-\}            : {token, {'}', TokenLoc}}.
-\,            : {token, {',', TokenLoc}}.
-=             : {token, {'=', TokenLoc}}.
-;             : {token, {';', TokenLoc}}.
-:             : {token, {':', TokenLoc}}.
-\|            : {token, {'|', TokenLoc}}.
-->            : {token, {'->', TokenLoc}}.
-\|>           : {token, {'|>', TokenLoc}}.
->>=           : {token, {'>>=', TokenLoc}}.
 
-let           : {token, {'let', TokenLoc}}.
-fn            : {token, {'fn', TokenLoc}}.
-end           : {token, {'end', TokenLoc}}.
-do            : {token, {'do', TokenLoc}}.
-if            : {token, {'if', TokenLoc}}.
-else          : {token, {'else', TokenLoc}}.
-yield         : {token, {'yield', TokenLoc}}.
-type          : {token, {'type', TokenLoc}}.
-is            : {token, {'is', TokenLoc}}.
 
-:ok           : {token, {':ok', TokenLoc}}.
-:error        : {token, {':error', TokenLoc}}.
 
 {IDENTIFIER}  : {token, {identifier, TokenLoc, list_to_atom(TokenChars)}}.
 

@@ -71,7 +71,7 @@ defmodule Opal.Evaluator do
     # Create a new environment that extends the current one
     block_env = Environment.extend(env)
     # Evaluate all expressions in the block environment
-    {result, final_block_env} = Enum.reduce(exprs, {nil, block_env}, fn expr, {_, acc_env} ->
+    {result, _final_block_env} = Enum.reduce(exprs, {nil, block_env}, fn expr, {_, acc_env} ->
       do_eval(expr, acc_env)
     end)
     # End of block, returns result with original environment
@@ -94,7 +94,7 @@ defmodule Opal.Evaluator do
   # Yield to block
   defp do_eval({:yield, args}, env) do
     case Environment.lookup(env, :__block__) do
-      {:ok, block_fn} ->
+      {:ok, _block_fn} ->
         # Call the block with the provided arguments
         do_eval({:call, :__block__, args}, env)
 
