@@ -19,12 +19,17 @@ defmodule Opal do
     end
   end
 
+  def compile(code) do
+    with {:ok, tokens} <- Lexer.tokenize(code),
+         {:ok, ast} <- Parser.parse(tokens) do
+      Compiler.compile(ast)
+    end
+  end
+
   def run(code) do
     with {:ok, tokens} <- Lexer.tokenize(code),
          {:ok, ast} <- Parser.parse(tokens) do
       Compiler.run(ast)
-    else
-      err -> err
     end
   end
 end
