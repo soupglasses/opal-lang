@@ -5,6 +5,7 @@ defmodule Opal.Compiler do
 
   import :cerl
 
+  # TODO: Make error handling give partial result back.
   def generate_core(ast) do
     {core_expr, _env} = generate_core(ast, %{})
     modulename = :"Opal.Script"

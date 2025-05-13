@@ -8,7 +8,7 @@ defmodule Opal.LexerTest do
       assert Lexer.tokenize("42") == {:ok, [{:int, {1, 1}, 42}]}
       assert Lexer.tokenize("0") == {:ok, [{:int, {1, 1}, 0}]}
       assert Lexer.tokenize("9999") == {:ok, [{:int, {1, 1}, 9999}]}
-      assert Lexer.tokenize("100_000") == {:ok, [{:int, {1, 1}, 100000}]}
+      assert Lexer.tokenize("100_000") == {:ok, [{:int, {1, 1}, 100_000}]}
     end
 
     test "tokenizes floats" do
@@ -24,6 +24,14 @@ defmodule Opal.LexerTest do
       assert Lexer.tokenize("X") == {:ok, [{:identifier, {1, 1}, :X}]}
       assert Lexer.tokenize("foo") == {:ok, [{:identifier, {1, 1}, :foo}]}
       assert Lexer.tokenize("bar_baz") == {:ok, [{:identifier, {1, 1}, :bar_baz}]}
+    end
+
+    test "tokenizes around comments" do
+      assert Lexer.tokenize("42 # The answer to life, the universe, and everything") ==
+               {:ok, [{:int, {1, 1}, 42}]}
+
+      assert Lexer.tokenize("# What is 9 + 10?\n21") ==
+               {:ok, [{:int, {2, 1}, 21}]}
     end
 
     test "tokenizes simple expressions" do
@@ -43,8 +51,10 @@ defmodule Opal.LexerTest do
     end
 
     test "handles error cases" do
-      assert {:error, _} = Lexer.tokenize("1z") # variable cannot start with a digit
-      assert {:error, _} = Lexer.tokenize("01") # integers cannot start with a zero
+      # integers cannot start with a zero
+      assert {:error, _} = Lexer.tokenize("01")
+      # variable cannot start with a digit
+      assert {:error, _} = Lexer.tokenize("1z")
     end
   end
 end
