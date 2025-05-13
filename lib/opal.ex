@@ -18,6 +18,7 @@ defmodule Opal do
   end
 
   def compile(code), do: compile(code, [])
+
   def compile(code, opts) do
     with {:ok, ast} <- parse(code) do
       Compiler.generate_core(ast)

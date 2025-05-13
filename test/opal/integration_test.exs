@@ -28,11 +28,11 @@ defmodule Opal.IntegrationTest do
       assert Opal.run("5 / 2.5") == 2.0
     end
 
-
     test "evaluates assignment and reference" do
       assert Opal.run("x = 42; x") == 42
       assert Opal.run("x = 1; y = 2; x + y") == 3
-      assert Opal.run("x = 1; x = 2; x") == 2  # Variable reassignment
+      # Variable reassignment
+      assert Opal.run("x = 1; x = 2; x") == 2
     end
 
     test "evaluates pattern matching" do
@@ -47,9 +47,12 @@ defmodule Opal.IntegrationTest do
 
     test "handles errors gracefully" do
       # FIX: Parser error is 2 args, Compiler error is 3 args. Runtime is exception.
-      assert {:error, _} = Opal.run("1 +")  # Incomplete expression
-      assert {:error, _, _} = Opal.run("x")    # Undefined variable
-      assert {:error, _} = Opal.run("1 / 0")  # Division by zero
+      # Incomplete expression
+      assert {:error, _} = Opal.run("1 +")
+      # Undefined variable
+      assert {:error, _, _} = Opal.run("x")
+      # Division by zero
+      assert {:error, _} = Opal.run("1 / 0")
     end
   end
 end

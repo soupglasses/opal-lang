@@ -5,12 +5,11 @@ defmodule Opal.Enviroment do
   Management of variable bindings and scopes during execution
   """
   @type t :: %__MODULE__{
-    bindings: map(),
-    parent: t() | nil
-  }
+          bindings: map(),
+          parent: t() | nil
+        }
 
   defstruct bindings: %{}, parent: nil
-
 
   @doc """
   Creates empty environment
@@ -21,13 +20,11 @@ defmodule Opal.Enviroment do
   @spec new() :: t()
   def new, do: %__MODULE__{}
 
-
   @doc """
   New environment with given parent environment
   """
   @spec extend(t()) :: t()
   def extend(parent), do: %__MODULE__{parent: parent}
-
 
   @doc """
   Looks up variable in environment.
@@ -44,7 +41,6 @@ defmodule Opal.Enviroment do
       :error -> {:error, :undefined_variable}
     end
   end
-
 
   @doc """
   Defines are varable in the environment.

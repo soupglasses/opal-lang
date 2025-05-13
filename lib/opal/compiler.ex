@@ -12,11 +12,15 @@ defmodule Opal.Compiler do
 
     # Entrypoint
     c_module(
-      c_atom(modulename), # name
+      # name
+      c_atom(modulename),
       # TODO: add c_fname(:module_info, 0), c_fname(:module_info, 1)] to exports.
-      [c_fname(:run, 0)], # exports [V1, ...] where V is fname var.
-      [], # attributes: [{K1, T1}, ...] where K is atom, T is constant.
-      [{c_fname(:run, 0), c_fun([], core_expr)}] # definitions: [{V1, F1}, ...] where V is fname var, F is fun type.
+      # exports [V1, ...] where V is fname var.
+      [c_fname(:run, 0)],
+      # attributes: [{K1, T1}, ...] where K is atom, T is constant.
+      [],
+      # definitions: [{V1, F1}, ...] where V is fname var, F is fun type.
+      [{c_fname(:run, 0), c_fun([], core_expr)}]
     )
   end
 
@@ -45,13 +49,13 @@ defmodule Opal.Compiler do
   defp generate_core({:int, pos, value}, env), do: {ann_c_int([pos], value), env}
   defp generate_core({:float, pos, value}, env), do: {ann_c_float([pos], value), env}
 
-  #defp generate_core({:fn, name, args, body}, env) do
+  # defp generate_core({:fn, name, args, body}, env) do
   #  arity = List.length(args)
   #  env = %{exports: MapSet.new()}
   #  Map.update!(x, :exports, fn exports -> MapSet.put(exports, :cerl.c_fname(name, arity)) end)
   #  Map.update(x, :exports, MapSet.new(), fn exports -> MapSet.put(exports, c_fname(name, arity)) end)
   #  Map.update(x, :funcs, %{}, fn funcs -> {c_fname(name, arity), %{case}} end)
-  #end
+  # end
 
   # TODO: Flatten call exprs with anonymous variables.
 
