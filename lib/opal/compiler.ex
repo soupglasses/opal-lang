@@ -5,35 +5,6 @@ defmodule Opal.Compiler do
 
   import :cerl
 
-  def run(ast) do
-    {:ok, module} = compile_and_load(ast)
-    module.run()
-  end
-
-  def compile_and_load(ast) do
-    with {:ok, module_name, binary, _warnings} <- compile(ast),
-         {:module, module} <- :code.load_binary(module_name, ~c"nopath", binary) do
-      {:ok, module}
-    else
-      err -> err
-    end
-  end
-
-  # TODO: Figure out a better interface?
-  def compile(ast) do
-    compile(ast, [:binary, :verbose])
-  end
-
-  def compile(ast, args) do
-    :compile.forms(generate_core(ast), [:from_core, :return] ++ args)
-  end
-
-  def format_core(ast) do
-    generate_core(ast)
-    |> :core_pp.format()
-    |> :erlang.iolist_to_binary()
-  end
-
   def generate_core(ast) do
     {core_expr, _env} = generate_core(ast, %{})
     modulename = :"Opal.Script"
@@ -56,6 +27,7 @@ defmodule Opal.Compiler do
   defp generate_core([stmt | stmts], env0) do
     with {stmt_eval, env1} = generate_core(stmt, env0),
          {stmts_eval, env2} = generate_core(stmts, env1) do
+      # TODO: This breaks assignment!
       {c_seq(stmt_eval, stmts_eval), env2}
     end
   end
@@ -69,9 +41,19 @@ defmodule Opal.Compiler do
     end
   end
 
-  defp generate_core({:var, value}, env), do: {c_var(value), env}
-  defp generate_core({:int, value}, env), do: {c_int(value), env}
-  defp generate_core({:float, value}, env), do: {c_float(value), env}
+  defp generate_core({:var, pos, value}, env), do: {ann_c_var([pos], value), env}
+  defp generate_core({:int, pos, value}, env), do: {ann_c_int([pos], value), env}
+  defp generate_core({:float, pos, value}, env), do: {ann_c_float([pos], value), env}
+
+  #defp generate_core({:fn, name, args, body}, env) do
+  #  arity = List.length(args)
+  #  env = %{exports: MapSet.new()}
+  #  Map.update!(x, :exports, fn exports -> MapSet.put(exports, :cerl.c_fname(name, arity)) end)
+  #  Map.update(x, :exports, MapSet.new(), fn exports -> MapSet.put(exports, c_fname(name, arity)) end)
+  #  Map.update(x, :funcs, %{}, fn funcs -> {c_fname(name, arity), %{case}} end)
+  #end
+
+  # TODO: Flatten call exprs with anonymous variables.
 
   defp generate_core({:add, left, right}, env) do
     with {left_expr, env1} = generate_core(left, env),

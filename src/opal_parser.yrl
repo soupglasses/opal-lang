@@ -22,7 +22,7 @@ statement -> pattern '=' expr ';' statement : {match, '$1', '$3', '$5'}.
 patterns -> pattern ',' patterns : ['$1' | '$3'].
 patterns -> pattern : ['$1'].
 
-pattern -> identifier : {var, unwrap('$1')}.
+pattern -> identifier : {var, pos('$1'), unwrap('$1')}.
 
 %% Expressions
 expr -> '(' expr ')'  : '$2'.
@@ -30,10 +30,11 @@ expr -> expr '+' expr : {add, '$1', '$3'}.
 expr -> expr '-' expr : {subtract, '$1', '$3'}.
 expr -> expr '*' expr : {multiply, '$1', '$3'}.
 expr -> expr '/' expr : {divide, '$1', '$3'}.
-expr -> int           : {int, unwrap('$1')}.
-expr -> float         : {float, unwrap('$1')}.
-expr -> identifier    : {var, unwrap('$1')}.
+expr -> int           : {int, pos('$1'), unwrap('$1')}.
+expr -> float         : {float, pos('$1'), unwrap('$1')}.
+expr -> identifier    : {var, pos('$1'), unwrap('$1')}.
 
 Erlang code.
 
 unwrap({_Token, _Pos, Value}) -> Value.
+pos({_Token, Pos, _Value}) -> Pos.

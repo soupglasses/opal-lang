@@ -17,28 +17,27 @@ defmodule Opal do
     end
   end
 
-  # TODO: Output to CERL?
-  def compile(code) do
+  def compile(code), do: compile(code, [])
+  def compile(code, opts) do
     with {:ok, ast} <- parse(code) do
-      Compiler.compile(ast)
-    end
-  end
-
-  def compile(code, args) do
-    with {:ok, ast} <- parse(code) do
-      Compiler.compile(ast, args)
+      Compiler.generate_core(ast)
+      |> :compile.forms([:from_core, :verbose, :return] ++ opts)
     end
   end
 
   def to_core(code) do
     with {:ok, ast} <- parse(code) do
-      Compiler.format_core(ast)
+      Compiler.generate_core(ast)
+      |> :core_pp.format()
+      |> :erlang.iolist_to_binary()
     end
   end
 
+  # TODO: Use core_eval?
   def run(code) do
-    with {:ok, ast} <- parse(code) do
-      Compiler.run(ast)
+    with {:ok, module_name, binary, _warnings} <- compile(code),
+         {:module, module} <- :code.load_binary(module_name, ~c"nopath", binary) do
+      module.run()
     end
   end
 end
