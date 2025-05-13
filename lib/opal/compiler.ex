@@ -21,8 +21,11 @@ defmodule Opal.Compiler do
 
   # TODO: Figure out a better interface?
   def compile(ast) do
-    # TODO: Wrap interface in case?
-    :compile.forms(generate_core(ast), [:from_core, :binary, :verbose, :return])
+    compile(ast, [:binary, :verbose])
+  end
+
+  def compile(ast, args) do
+    :compile.forms(generate_core(ast), [:from_core, :return] ++ args)
   end
 
   def format_core(ast) do
@@ -66,7 +69,7 @@ defmodule Opal.Compiler do
     end
   end
 
-  defp generate_core({:identifier, value}, env), do: {c_var(value), env}
+  defp generate_core({:var, value}, env), do: {c_var(value), env}
   defp generate_core({:int, value}, env), do: {c_int(value), env}
   defp generate_core({:float, value}, env), do: {c_float(value), env}
 

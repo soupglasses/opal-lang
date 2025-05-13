@@ -13,6 +13,7 @@ Rules.
 {IDENTIFIER}  : {token, {identifier, TokenLoc, list_to_atom(TokenChars)}}.
 \=            : {token, {'=', TokenLoc}}.
 \;            : {token, {';', TokenLoc}}.
+\,            : {token, {',', TokenLoc}}.
 \+            : {token, {'+', TokenLoc}}.
 \-            : {token, {'-', TokenLoc}}.
 \*            : {token, {'*', TokenLoc}}.
