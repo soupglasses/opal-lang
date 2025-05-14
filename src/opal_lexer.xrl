@@ -7,22 +7,22 @@ NEWLINE    = \n|\r|\r\n
 COMMENT    = #.*
 
 Rules.
-{INT}         : {token, {int, TokenLine, list_to_integer(clean_underscores(TokenChars))}}.
-{FLOAT}       : {token, {float, TokenLine, list_to_float(clean_underscores(TokenChars))}}.
-{IDENTIFIER}  : {token, {identifier, TokenLine, list_to_atom(TokenChars)}}.
-\=            : {token, {'=', TokenLine}}.
-\;            : {token, {';', TokenLine}}.
-\,            : {token, {',', TokenLine}}.
-\+            : {token, {'+', TokenLine}}.
-\-            : {token, {'-', TokenLine}}.
-\*            : {token, {'*', TokenLine}}.
-\/            : {token, {'/', TokenLine}}.
-\(            : {token, {'(', TokenLine}}.
-\)            : {token, {')', TokenLine}}.
+{INT}         : {token, {int, TokenLoc, list_to_integer(clean_underscores(TokenChars))}}.
+{FLOAT}       : {token, {float, TokenLoc, list_to_float(clean_underscores(TokenChars))}}.
+{IDENTIFIER}  : {token, {identifier, TokenLoc, list_to_atom(TokenChars)}}.
+\=            : {token, {'=', TokenLoc}}.
+\;            : {token, {';', TokenLoc}}.
+\,            : {token, {',', TokenLoc}}.
+\+            : {token, {'+', TokenLoc}}.
+\-            : {token, {'-', TokenLoc}}.
+\*            : {token, {'*', TokenLoc}}.
+\/            : {token, {'/', TokenLoc}}.
+\(            : {token, {'(', TokenLoc}}.
+\)            : {token, {')', TokenLoc}}.
 {WHITESPACE}+ : skip_token.
-{NEWLINE}     : {token, handle_newline(TokenLine)}.
+{NEWLINE}     : {token, handle_newline(TokenLoc)}.
 {COMMENT}     : skip_token.
-%.             : {error, {illegal, TokenLine, TokenChars}}.
+%.             : {error, {illegal, TokenLoc, TokenChars}}.
 
 Erlang code.
 
