@@ -14,14 +14,15 @@ program -> statements : '$1'.
 %% Statements
 statements -> statement : ['$1' | []].
 statements -> statement ';' statements : ['$1' | '$3'].
+statements -> statement ';' : ['$1' | []].  % Allow trailing semicolons
 
 statement -> expr : '$1'.
+statement -> pattern '=' expr : {match, '$1', '$3', nil}.
 statement -> pattern '=' expr ';' statement : {match, '$1', '$3', '$5'}.
 
 %% Pattern Matching
 patterns -> pattern ',' patterns : ['$1' | '$3'].
 patterns -> pattern : ['$1'].
-
 pattern -> identifier : {var, pos('$1'), unwrap('$1')}.
 
 %% Expressions
@@ -35,6 +36,7 @@ expr -> float         : {float, pos('$1'), unwrap('$1')}.
 expr -> identifier    : {var, pos('$1'), unwrap('$1')}.
 
 Erlang code.
+unwrap({_Token, _Line, Value}) -> Value.
 
-unwrap({_Token, _Pos, Value}) -> Value.
-pos({_Token, Pos, _Value}) -> Pos.
+pos({_Token, Line, _Value}) -> Line;
+pos({_Token, Line}) -> Line.
