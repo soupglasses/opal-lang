@@ -28,7 +28,6 @@ Erlang code.
 clean_underscores(Str) when is_list(Str) ->
     [C || C <- Str, C =/= $_].
 
-
 process_newline(TokenLoc) ->
     PrevTokenType = case get(prev_token_type) of
         undefined -> none;
@@ -44,7 +43,6 @@ process_newline(TokenLoc) ->
         true ->
             skip_token
     end.
-
 
 token(Token) ->
     update_token_history(Token),
