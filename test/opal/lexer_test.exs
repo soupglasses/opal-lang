@@ -20,10 +20,9 @@ defmodule Opal.LexerTest do
     end
 
     test "tokenizes identifiers" do
-      assert Lexer.tokenize("x") == {:ok, [{:identifier, {1, 1}, :x}]}
-      assert Lexer.tokenize("X") == {:ok, [{:identifier, {1, 1}, :X}]}
-      assert Lexer.tokenize("foo") == {:ok, [{:identifier, {1, 1}, :foo}]}
-      assert Lexer.tokenize("bar_baz") == {:ok, [{:identifier, {1, 1}, :bar_baz}]}
+      assert Lexer.tokenize("x") == {:ok, [{:var, {1, 1}, :x}]}
+      assert Lexer.tokenize("foo") == {:ok, [{:var, {1, 1}, :foo}]}
+      assert Lexer.tokenize("bar_baz") == {:ok, [{:var, {1, 1}, :bar_baz}]}
     end
 
     test "tokenizes around comments" do
@@ -39,16 +38,23 @@ defmodule Opal.LexerTest do
                {:ok, [{:int, {1, 1}, 1}, {:+, {1, 2}}, {:int, {1, 3}, 2}]}
 
       assert Lexer.tokenize("x=42") ==
-               {:ok, [{:identifier, {1, 1}, :x}, {:=, {1, 2}}, {:int, {1, 3}, 42}]}
+               {:ok, [{:var, {1, 1}, :x}, {:=, {1, 2}}, {:int, {1, 3}, 42}]}
     end
 
     test "tokenizes around whitespace correctly" do
       assert Lexer.tokenize(" 1  +    2 ") ==
                {:ok, [{:int, {1, 2}, 1}, {:+, {1, 5}}, {:int, {1, 10}, 2}]}
 
-      assert Lexer.tokenize(" 1  +\n   2 ") ==
-               {:ok, [{:int, {1, 2}, 1}, {:+, {1, 5}}, {:int, {2, 4}, 2}]}
+      assert Lexer.tokenize(" 1  +\n \n   2 ") ==
+               {:ok, [{:int, {1, 2}, 1}, {:+, {1, 5}}, {:int, {3, 4}, 2}]}
+
+      assert Lexer.tokenize(" 1  +\n \n    \r\n   2 ") ==
+               {:ok, [{:int, {1, 2}, 1}, {:+, {1, 5}}, {:int, {4, 4}, 2}]}
     end
+
+    # TODO: Module Identifiers
+    # TODO: Functions
+    # TODO: Function calls
 
     test "handles error cases" do
       # integers cannot start with a zero

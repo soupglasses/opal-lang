@@ -3,6 +3,12 @@ defmodule Opal.Lexer do
   Lexical analyzer for Opal.
   """
 
+  def tokenize!(code) do
+    with {:ok, tokens} <- tokenize(code) do
+      tokens
+    end
+  end
+
   @doc """
   Tokenize a string of Opal code.
   Returns {:ok, tokens} or {:error, reason}
@@ -30,11 +36,13 @@ defmodule Opal.Lexer do
 
   defp validate_tokens([]), do: {:ok, []}
 
+  # Stops 01, etc.
   defp validate_tokens([{:int, {line, col}, 0}, {:int, _, _} | _rest]) do
     {:error, {:invalid_integer, {line, col}, ~c"0"}}
   end
 
-  defp validate_tokens([{:int, {line, col}, digit}, {:identifier, _, _} | _rest]) do
+  # Stops 1x etc.
+  defp validate_tokens([{:int, {line, col}, digit}, {:var, _, _} | _rest]) do
     {:error, {:invalid_identifier, {line, col}, Integer.to_charlist(digit)}}
   end
 
