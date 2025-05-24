@@ -28,26 +28,23 @@ defmodule Opal.LexerTest do
 
     test "tokenizes around comments" do
       assert Lexer.tokenize("42 # The answer to life, the universe, and everything") ==
-               {:ok, [{:int, {1, 1}, 42}]}
-
+        {:ok, [{:int, {1, 1}, 42}]}
       assert Lexer.tokenize("# What is 9 + 10?\n21") ==
-               {:ok, [{:int, {2, 1}, 21}]}
+        {:ok, [{:int, {2, 1}, 21}]}
     end
 
     test "tokenizes simple expressions" do
       assert Lexer.tokenize("1+2") ==
-               {:ok, [{:int, {1, 1}, 1}, {:+, {1, 2}}, {:int, {1, 3}, 2}]}
-
+        {:ok, [{:int, {1, 1}, 1}, {:'+', {1, 2}}, {:int, {1, 3}, 2}]}
       assert Lexer.tokenize("x=42") ==
-               {:ok, [{:identifier, {1, 1}, :x}, {:=, {1, 2}}, {:int, {1, 3}, 42}]}
+        {:ok, [{:identifier, {1, 1}, :x}, {:=, {1, 2}}, {:int, {1, 3}, 42}]}
     end
 
     test "tokenizes around whitespace correctly" do
       assert Lexer.tokenize(" 1  +    2 ") ==
-               {:ok, [{:int, {1, 2}, 1}, {:+, {1, 5}}, {:int, {1, 10}, 2}]}
-
-      assert Lexer.tokenize(" 1  +\n   2 ") ==
-               {:ok, [{:int, {1, 2}, 1}, {:+, {1, 5}}, {:int, {2, 4}, 2}]}
+        {:ok, [{:int, {1, 1}, 1}, {:'+', {1, 4}}, {:int, {1, 9}, 2}]}
+      assert Lexer.tokenize(" 1 +\n 2 ") ==
+        {:ok, [{:int, {1, 1}, 1}, {:'+', {1, 3}}, {:int, {2, 1}, 2}]}
     end
 
     test "handles error cases" do
@@ -66,12 +63,13 @@ defmodule Opal.LexerTest do
       y
       """
       {:ok, tokens} = Lexer.tokenize(code)
-
-      refute Enum.any?(Enum.chunk_every(tokens, 2, 1, :discard), fn
-        [ {'+', _}, ~c";" ] -> false
+      token_types = Enum.map(tokens, fn {type, _, _} -> type; {type, _} -> type end)
+      refute Enum.any?(Enum.chunk_every(token_types, 2, 1, :discard), fn
+        [:'+', :';'] -> true
         _ -> false
       end)
     end
+
     test "ASI Does not trigger on newline mid expression" do
       # Using operators that shouldn't trigger ASI
       code = """
@@ -79,9 +77,9 @@ defmodule Opal.LexerTest do
       + y
       """
       {:ok, tokens} = Lexer.tokenize(code)
-
-      refute Enum.any?(Enum.chunk_every(tokens, 2, 1, :discard), fn
-        [ {'+', _}, ~c";" ] -> false
+      token_types = Enum.map(tokens, fn {type, _, _} -> type; {type, _} -> type end)
+      refute Enum.any?(Enum.chunk_every(token_types, 2, 1, :discard), fn
+        [:';', :'+'] -> true
         _ -> false
       end)
     end
