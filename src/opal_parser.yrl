@@ -5,7 +5,7 @@ expr expr_list bop uop literal.
 
 Terminals
 'module' 'do' 'end' 'fn' 'import'
-'if' 'then' 'else' 'while' 'not'
+'if' 'then' 'else' 'while' 'not' 'and' 'or'
 '+' '-' '*' '/' '%' '^' '>=' '<=' '!=' '==' '<' '>' '='
 '(' ')' '[' ']' ',' ';' '|' '.'
 int float string char atom var bool
@@ -14,13 +14,15 @@ module_id.
 Rootsymbol program.
 
 % Operator precedence
-Left  200 '|'.
-Left  300 '=='.
-Left  300 '!='.
-Left  400 '<'.
-Left  400 '>'.
-Left  400 '<='.
-Left  400 '>='.
+Left     100 '|'.
+Left     200 'and'.
+Left     200 'or'.
+Nonassoc 300 '=='.
+Nonassoc 300 '!='.
+Nonassoc 300 '<'.
+Nonassoc 300 '>'.
+Nonassoc 300 '<='.
+Nonassoc 300 '>='.
 Left  500 '+'.
 Left  500 '-'.
 Left  600 '*'.

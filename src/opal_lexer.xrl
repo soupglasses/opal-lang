@@ -32,6 +32,8 @@ then        : {token, {then, TokenLoc}}.
 else        : {token, {'else', TokenLoc}}.
 while       : {token, {while, TokenLoc}}.
 not         : {token, {'not', TokenLoc}}.
+and         : {token, {'and', TokenLoc}}.
+or          : {token, {'or', TokenLoc}}.
 true        : {token, {bool, TokenLoc, true}}.
 false       : {token, {bool, TokenLoc, false}}.
 
