@@ -1,6 +1,28 @@
 # Opal
 
-**TODO: Add description**
+A language inspired by Ruby and Elixir, and which compiles to BEAM VM.
+
+## Setup
+
+```bash
+# Choose one:
+sudo apt install elixir # for Debian/Ubuntu
+sudo dnf install elixir # for Fedora
+sudo zypper install elixir # for SUSE/openSUSE
+```
+
+## Running
+
+```bash
+$ iex -S mix
+Opal.run("fn the_answer_to_everything() do 42 end the_answer_to_everything()")
+```
+
+## Testing
+
+```bash
+mix test --trace
+```
 
 ## Installation
 
