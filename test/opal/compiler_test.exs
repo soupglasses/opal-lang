@@ -21,6 +21,19 @@ defmodule Opal.CompilerTest do
       assert true == Opal.run("false or true")
     end
 
+    test "equality" do
+      assert true == Opal.run("1 < 2")
+      assert false == Opal.run("1 < 1")
+      assert true == Opal.run("1 <= 2")
+      assert true == Opal.run("1 <= 1")
+      assert true == Opal.run("2 > 1")
+      assert false == Opal.run("1 > 1")
+      assert true == Opal.run("2 >= 1")
+      assert true == Opal.run("1 >= 1")
+      assert true == Opal.run("1 == 1")
+      assert false == Opal.run("1 != 1")
+    end
+
     test "run external funcs" do
       assert 0.00000 == Float.round(Opal.run("pi = :math.pi(); :math.sin(pi)"), 5)
       # assert 0.00000 == Float.round(Opal.run(":math.sin(:math.pi())"), 5)

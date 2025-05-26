@@ -354,7 +354,7 @@ defmodule Opal.Compiler do
     end
   end
 
-  defp generate_core({{:"=<", loc}, left, right}, env) do
+  defp generate_core({{:<=, loc}, left, right}, env) do
     with {left_expr, env1} = generate_core(left, env),
          {right_expr, env2} = generate_core(right, env1) do
       {ann_c_call(
