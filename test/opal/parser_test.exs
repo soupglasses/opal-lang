@@ -54,7 +54,7 @@ defmodule Opal.ParserTest do
                {:ok,
                 [
                   {:function, {1, 1},
-                   {{:var, {1, 4}, :test}, {:pattern, []},
+                   {{:var, {1, 4}, :test}, {:patterns, []},
                     [{:int, {1, 14}, 4}, {:int, {2, 2}, 3}, {:int, {5, 2}, 2}]}}
                 ]}
 
@@ -62,14 +62,14 @@ defmodule Opal.ParserTest do
                {:ok,
                 [
                   {:function, {1, 1},
-                   {{:var, {1, 4}, :test}, {:pattern, []}, [{:int, {2, 2}, 4}]}}
+                   {{:var, {1, 4}, :test}, {:patterns, []}, [{:int, {2, 2}, 4}]}}
                 ]}
 
       assert Parser.parse(Lexer.tokenize!("fn test() do\n 4 +\n 3 end")) ==
                {:ok,
                 [
                   {:function, {1, 1},
-                   {{:var, {1, 4}, :test}, {:pattern, []},
+                   {{:var, {1, 4}, :test}, {:patterns, []},
                     [
                       {{:+, {2, 4}}, {:int, {2, 2}, 4}, {:int, {3, 2}, 3}}
                     ]}}
@@ -79,7 +79,7 @@ defmodule Opal.ParserTest do
                {:ok,
                 [
                   {:function, {1, 1},
-                   {{:var, {1, 4}, :test}, {:pattern, []},
+                   {{:var, {1, 4}, :test}, {:patterns, []},
                     [
                       {:int, {2, 2}, 4},
                       {:int, {3, 2}, 3}

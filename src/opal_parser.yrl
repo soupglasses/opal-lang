@@ -41,7 +41,7 @@ module_blocks -> module_block : ['$1'].
 module_blocks -> module_block module_blocks : ['$1' | '$2'].
 
 module_block -> 'fn' var '(' ')' 'do' statements 'end' :
-    {function, pos('$1'), {'$2', {pattern, []}, '$6'}}.
+    {function, pos('$1'), {'$2', {patterns, []}, '$6'}}.
 module_block -> 'fn' var '(' patterns ')' 'do' statements 'end' :
     {function, pos('$1'), {'$2', '$4', '$7'}}.
 module_block -> statements : '$1'.
@@ -58,7 +58,7 @@ statement -> patterns '=' expr :
 statement -> expr :
     '$1'.
 
-patterns -> patterns_ : {pattern, '$1'}.
+patterns -> patterns_ : {patterns, '$1'}.
 patterns_ -> pattern : ['$1'].
 patterns_ -> pattern ',' patterns_ : ['$1' | '$3'].
 
