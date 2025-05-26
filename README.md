@@ -2,6 +2,18 @@
 
 A language inspired by Ruby and Elixir, and which compiles to BEAM VM.
 
+## Example
+
+```elixir
+module Fibonacci do
+  fn fib(0) do 0 end
+  fn fib(1) do 1 end
+  fn fib(x) do
+    fib(x - 1) + fib(x - 2)
+  end
+end
+```
+
 ## Setup
 
 ```bash
