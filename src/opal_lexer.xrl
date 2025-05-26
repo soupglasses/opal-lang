@@ -26,7 +26,6 @@ module      : {token, {module, TokenLoc}}.
 do          : {token, {do, TokenLoc}}.
 end         : {token, {'end', TokenLoc}}.
 fn          : {token, {fn, TokenLoc}}.
-import      : {token, {import, TokenLoc}}.
 if          : {token, {'if', TokenLoc}}.
 then        : {token, {then, TokenLoc}}.
 else        : {token, {'else', TokenLoc}}.

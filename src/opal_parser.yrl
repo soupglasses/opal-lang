@@ -1,10 +1,10 @@
 Nonterminals
 program module_def module_blocks module_block
-statements statement patterns patterns_ pattern
-args args_ arg expr bop uop literal.
+statements statement patterns pattern_items pattern
+args arg_items arg fun_call expr bop uop literal.
 
 Terminals
-'module' 'do' 'end' 'fn' 'import'
+'module' 'do' 'end' 'fn'
 'if' 'then' 'else' 'while' 'not' 'and' 'or'
 '+' '-' '*' '/' '%' '^' '>=' '<=' '!=' '==' '<' '>' '='
 '(' ')' '[' ']' ',' ';' '|' '.'
@@ -23,13 +23,14 @@ Nonassoc 300 '<'.
 Nonassoc 300 '>'.
 Nonassoc 300 '<='.
 Nonassoc 300 '>='.
-Left  500 '+'.
-Left  500 '-'.
-Left  600 '*'.
-Left  600 '/'.
-Left  600 '%'.
-Right 700 '^'.
-Unary 800 uop.
+Left     500 '+'.
+Left     500 '-'.
+Left     600 '*'.
+Left     600 '/'.
+Left     600 '%'.
+Right    700 '^'.
+Unary    800 uop.
+Right    900 '('.  % Give function calls higher precedence
 
 program -> module_def : '$1'.
 program -> module_blocks : '$1'.
@@ -58,32 +59,36 @@ statement -> patterns '=' expr :
 statement -> expr :
     '$1'.
 
-patterns -> patterns_ : {patterns, '$1'}.
-patterns_ -> pattern : ['$1'].
-patterns_ -> pattern ',' patterns_ : ['$1' | '$3'].
+patterns -> pattern_items : {patterns, '$1'}.
+pattern_items -> pattern : ['$1'].
+pattern_items -> pattern ',' pattern_items : ['$1' | '$3'].
 
 pattern -> literal : '$1'.
 %pattern -> '[' literal '|' pattern ']' :
 %    {list_pattern, pos('$2'), {'$2', '$4'}}.
 
-args -> args_ : {args, '$1'}.
-args_ -> arg : ['$1'].
-args_ -> arg ',' args_ : ['$1' | '$3'].
+args -> arg_items : {args, '$1'}.
+arg_items -> arg : ['$1'].
+arg_items -> arg ',' arg_items : ['$1' | '$3'].
 
 arg -> expr : '$1'.
 
-expr -> literal : '$1'.
+fun_call -> var '(' ')' :
+    {apply, pos('$1') , {'$1', {args, []}}}.
+fun_call -> var '(' args ')' :
+    {apply, pos('$1') , {'$1', '$3'}}.
+fun_call -> atom '.' var '(' ')' :
+    {call, pos('$1') , {'$1', '$3', {args, []}}}.
+fun_call -> atom '.' var '(' args ')' :
+    {call, pos('$1'), {'$1', '$3', '$5'}}.
+
+expr -> fun_call : '$1'.
 expr -> expr bop expr : {'$2', '$1', '$3'}.
 expr -> uop expr : {'$1', '$2'}.
-expr -> var '(' ')' :
-    {apply, pos('$1') , {'$1', {args, []}}}.
-expr -> var '(' args ')' :
-    {apply, pos('$1') , {'$1', '$3'}}.
-expr -> atom '.' var '(' ')' :
-    {call, pos('$1') , {'$1', '$3', {args, []}}}.
-expr -> atom '.' var '(' args ')' :
-    {call, pos('$1'), {'$1', '$3', '$5'}}.
 expr -> '(' expr ')' : '$2'.
+expr -> literal : '$1'.
+%expr -> '[' ']' : {list, []}.
+%expr -> '[' arg_items ']' : {list, '$2'}.
 
 bop -> 'and' : '$1'.
 bop -> 'or' : '$1'.
@@ -110,7 +115,6 @@ literal -> var : '$1'.
 literal -> atom : '$1'.
 literal -> char : '$1'.
 literal -> string : '$1'.
-%literal -> list_expr : '$1'.
 
 Erlang code.
 
