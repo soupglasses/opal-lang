@@ -109,7 +109,7 @@ literal -> float : '$1'.
 literal -> var : '$1'.
 literal -> atom : '$1'.
 literal -> char : '$1'.
-%literal -> string : '$1'.
+literal -> string : '$1'.
 %literal -> list_expr : '$1'.
 
 Erlang code.

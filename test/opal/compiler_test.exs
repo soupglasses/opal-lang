@@ -25,6 +25,14 @@ defmodule Opal.CompilerTest do
       assert true == Opal.run("false or true")
     end
 
+    test "string" do
+      assert ~c"Hello world!" == Opal.run("\"Hello world!\"")
+    end
+
+    test "chars" do
+      assert ?" == Opal.run("?\"")
+    end
+
     test "equality" do
       assert true == Opal.run("1 < 2")
       assert false == Opal.run("1 < 1")

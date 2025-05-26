@@ -14,8 +14,8 @@ ATOM         = :{IDENTIFIER}
 % Numbers
 INTEGER    = 0|[1-9][0-9\_]*
 FLOAT      = [0-9]+\.[0-9]+([eE][+-]?[0-9]+)?
-%STRING = 
-CHAR = \?.
+STRING     = "([^"\\]|\\.)*"
+CHAR       = \?.
 
 COMMENT    = #.*\n?
 
@@ -66,8 +66,8 @@ false       : {token, {bool, TokenLoc, false}}.
 % Literals
 {INTEGER}     : {token, {int, TokenLoc, list_to_integer(clean_underscores(TokenChars))}}.
 {FLOAT}       : {token, {float, TokenLoc, list_to_float(clean_underscores(TokenChars))}}.
-%{STRING}     : {token, {string, TokenLoc, extract_string(TokenChars)}}.
-{CHAR}        : {token, {char, TokenLoc, list_to_atom(tl(TokenChars))}}.
+{STRING}      : {token, {string, TokenLoc, extract_string(TokenChars)}}.
+{CHAR}        : {token, {char, TokenLoc, hd(tl(TokenChars))}}.
 {ATOM}        : {token, {atom, TokenLoc, list_to_atom(tl(TokenChars))}}.
 {MODULE_ID}   : {token, {module_id, TokenLoc, list_to_atom(TokenChars)}}.
 {IDENTIFIER}  : {token, {var, TokenLoc, list_to_atom(TokenChars)}}.
@@ -80,3 +80,5 @@ Erlang code.
 
 clean_underscores(Str) when is_list(Str) ->
     [C || C <- Str, C =/= $_].
+extract_string(Str) -> 
+    string:substr(Str, 2, string:len(Str) - 2).

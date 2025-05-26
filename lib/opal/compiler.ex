@@ -196,13 +196,14 @@ defmodule Opal.Compiler do
 
   # TODO: Missing module_id and Opal function calls.
   # TODO: Missing char.
-  # TODO: Missing string.
   # TODO: Missing list.
   defp generate_core({:var, pos, value}, env), do: {ann_c_var(ann(pos), value), env}
   defp generate_core({:int, pos, value}, env), do: {ann_c_int(ann(pos), value), env}
   defp generate_core({:float, pos, value}, env), do: {ann_c_float(ann(pos), value), env}
   defp generate_core({:bool, pos, value}, env), do: {{:c_literal, ann(pos), value}, env}
   defp generate_core({:atom, pos, value}, env), do: {ann_c_atom(ann(pos), value), env}
+  defp generate_core({:string, pos, value}, env), do: {ann_c_string(ann(pos), value), env}
+  defp generate_core({:char, pos, value}, env), do: {ann_c_char(ann(pos), value), env}
 
   # Optimization to use `is_literal_term()` for certain args when `let _n = arg` is redundant.
   defp generate_core({:apply, loc, {{:var, name_pos, name}, {:args, args}}}, env0) do

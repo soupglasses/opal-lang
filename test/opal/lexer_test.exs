@@ -52,6 +52,16 @@ defmodule Opal.LexerTest do
                {:ok, [{:int, {1, 2}, 1}, {:+, {1, 5}}, {:int, {4, 4}, 2}]}
     end
 
+    test "tokenizes strings" do
+      assert Lexer.tokenize("\"Hello world!\nHow is your day going?\"") ==
+               {:ok, [{:string, {1, 1}, ~c"Hello world!\nHow is your day going?"}]}
+    end
+
+    test "tokenizes char" do
+      assert Lexer.tokenize("?\"") == {:ok, [{:char, {1, 1}, ?"}]}
+      assert Lexer.tokenize("?a") == {:ok, [{:char, {1, 1}, 97}]}
+    end
+
     # TODO: Module Identifiers
     # TODO: Functions
     # TODO: Function calls

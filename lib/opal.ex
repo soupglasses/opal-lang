@@ -38,10 +38,15 @@ defmodule Opal do
     end
   end
 
+  def load(code) do
+    with {:ok, module_name, binary, _warnings} <- compile(code) do
+      :code.load_binary(module_name, ~c"nopath", binary)
+    end
+  end
+
   # TODO: Use core_eval?
   def run(code) do
-    with {:ok, module_name, binary, _warnings} <- compile(code),
-         {:module, module} <- :code.load_binary(module_name, ~c"nopath", binary) do
+    with {:module, module} <- load(code) do
       module.main(~c"")
     end
   end
