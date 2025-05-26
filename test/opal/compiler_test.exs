@@ -15,8 +15,12 @@ defmodule Opal.CompilerTest do
       assert 42 == Opal.run("x = 42; 1; 2; 3; 4; 5; x")
     end
 
-    test "booleans" do
+    test "unary operators" do
       assert false == Opal.run("not true")
+      assert -42 == Opal.run("-42")
+    end
+
+    test "booleans" do
       assert false == Opal.run("true and false")
       assert true == Opal.run("false or true")
     end

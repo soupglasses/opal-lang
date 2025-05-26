@@ -402,6 +402,17 @@ defmodule Opal.Compiler do
     end
   end
 
+  defp generate_core({{:-, loc}, body}, env) do
+    with {body_expr, env1} = generate_core(body, env) do
+      {ann_c_call(
+         ann(loc),
+         c_atom(:erlang),
+         c_atom(:-),
+         [body_expr]
+       ), env1}
+    end
+  end
+
   defp generate_core({{:not, loc}, body}, env) do
     with {body_expr, env1} = generate_core(body, env) do
       {ann_c_call(
