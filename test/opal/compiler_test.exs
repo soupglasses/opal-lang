@@ -11,6 +11,11 @@ defmodule Opal.CompilerTest do
       assert 42 == Opal.run("x = 1; 1 = x; 42 = 42")
     end
 
+    test "wildcard" do
+      # TODO: Does not properly test wildcard, needs tuple or list in pattern.
+      assert 42 == Opal.run("_ = 42")
+    end
+
     test "trail of thought not lost" do
       assert 42 == Opal.run("x = 42; 1; 2; 3; 4; 5; x")
     end

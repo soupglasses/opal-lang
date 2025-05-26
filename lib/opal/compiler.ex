@@ -169,6 +169,11 @@ defmodule Opal.Compiler do
   defp generate_core({:patterns, patterns}, env0) do
     {patterns_eval, env1} =
       Enum.reduce(patterns, {[], env0}, fn
+        {:var, _, :_}, {patterns, env_acc} ->
+          with {wildcard_eval, env_new} <- new_c_var(env_acc) do
+            {patterns ++ [wildcard_eval], env_new}
+          end
+
         pattern, {patterns, env_acc} ->
           with {pattern_eval, env_new} <- generate_core(pattern, env_acc) do
             {patterns ++ [pattern_eval], env_new}

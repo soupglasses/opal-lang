@@ -8,7 +8,8 @@ UPPER_LETTER = [A-Z]
 LOWER_LETTER = [a-z]
 LETTER       = [a-zA-Z]
 MODULE_ID    = {UPPER_LETTER}({LETTER}|{DIGIT}|_)*
-IDENTIFIER   = {LOWER_LETTER}({LETTER}|{DIGIT}|_)*
+% TODO: Do not allow `_{DIGIT}` variables due to the compiler using it.
+IDENTIFIER   = ({LOWER_LETTER}|_)({LETTER}|{DIGIT}|_)*
 ATOM         = :{IDENTIFIER}
 
 % Numbers
