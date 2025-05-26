@@ -21,14 +21,18 @@ defmodule Opal do
 
   def compile(code, opts) do
     with {:ok, ast} <- parse(code) do
-      Compiler.generate_core(ast)
-      |> :compile.forms([:from_core, :verbose, :return] ++ opts)
+      Compiler.compile(ast)
+      |> tap(fn line -> if :verbose in opts, do: IO.inspect(line) end)
+      |> :compile.forms([:from_core, :verbose, :report, :return] ++ opts)
     end
   end
 
-  def to_core(code) do
+  def to_core(code), do: to_core(code, [])
+
+  def to_core(code, opts) do
     with {:ok, ast} <- parse(code) do
-      Compiler.generate_core(ast)
+      Compiler.compile(ast)
+      |> tap(fn line -> if :verbose in opts, do: IO.inspect(line) end)
       |> :core_pp.format()
       |> :erlang.iolist_to_binary()
     end
@@ -38,7 +42,7 @@ defmodule Opal do
   def run(code) do
     with {:ok, module_name, binary, _warnings} <- compile(code),
          {:module, module} <- :code.load_binary(module_name, ~c"nopath", binary) do
-      module.run()
+      module.main(~c"")
     end
   end
 end

@@ -43,16 +43,26 @@ defmodule Opal.IntegrationTest do
     end
 
     test "evaluates recursive functions" do
+      assert 55 == Opal.run("
+        fn fib(0) do 0 end
+        fn fib(1) do 1 end
+        fn fib(x) do
+          l = x - 1;
+          r = x - 2;
+          fib(l) + fib(r)
+        end
+
+        fib(10)")
     end
 
+    # FIX: Parser error is 2 args, Compiler error is 3 args. Runtime is exception.
     test "handles errors gracefully" do
-      # FIX: Parser error is 2 args, Compiler error is 3 args. Runtime is exception.
-      # Incomplete expression
+      # Parse error: Incomplete expression
       assert {:error, _} = Opal.run("1 +")
-      # Undefined variable
+      # Compile error: Unbound variable
       assert {:error, _, _} = Opal.run("x")
-      # Division by zero
-      assert {:error, _} = Opal.run("1 / 0")
+      # Runtime error: Division by zero
+      assert_raise ArithmeticError, fn -> Opal.run("1 / 0") end
     end
   end
 end

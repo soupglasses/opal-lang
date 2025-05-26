@@ -12,8 +12,10 @@ defmodule Opal.Parser do
       {:ok, ast} ->
         {:ok, ast}
 
-      {:error, {{line, col}, :opal_parser, error}} ->
-        {:error, "Parse error on line #{line}:#{col}: #{inspect(error)}"}
+      error ->
+        error
+        # {:error, {{line, col}, :opal_parser, error}} ->
+        #  {:error, "Parse error on line #{line}:#{col}: #{inspect(error)}"}
     end
   end
 end
