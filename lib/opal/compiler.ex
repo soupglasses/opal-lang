@@ -17,7 +17,7 @@ defmodule Opal.Compiler do
     %{
       fun_names: [],
       fun_clauses: %{},
-      local_var_count: 1
+      local_var_count: 0
     }
   end
 
@@ -34,11 +34,12 @@ defmodule Opal.Compiler do
           {exprs ++ expr, env_acc}
       end)
 
-    # Prossibly create main/1 to wrap uncaptured exprs.
+    # Create last main/1 to wrap possibly loose exprs.
     env =
       if exprs_ast != [] do
-        # TODO: Do not hardcode `_0` argument.
-        add_fun_clause({1, 1}, {:main, {:pattern, [{:var, nil, 0}]}, exprs_ast}, env1)
+        # HACK: Reshape :c_var back into AST :var for `add_fun_clause`.
+        {{:c_var, ann, name}, env2} = new_c_var(env1)
+        add_fun_clause(nil, {:main, {:pattern, [{:var, ann, name}]}, exprs_ast}, env2)
       else
         env1
       end
