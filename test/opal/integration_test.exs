@@ -53,6 +53,14 @@ defmodule Opal.IntegrationTest do
         end
 
         fib(10)")
+      assert 55 == Opal.run("
+        fn fib(0) do 0 end
+        fn fib(1) do 1 end
+        fn fib(x) do
+          fib(x - 1) + fib(x - 2)
+        end
+
+        fib(10)")
     end
 
     # FIX: Parser error is 2 args, Compiler error is 3 args. Runtime is exception.
