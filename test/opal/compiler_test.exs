@@ -16,6 +16,10 @@ defmodule Opal.CompilerTest do
       assert 42 == Opal.run("_ = 42")
     end
 
+    test "nil" do
+      assert nil == Opal.run("nil")
+    end
+
     test "trail of thought not lost" do
       assert 42 == Opal.run("x = 42; 1; 2; 3; 4; 5; x")
     end

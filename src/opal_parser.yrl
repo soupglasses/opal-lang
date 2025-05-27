@@ -8,7 +8,7 @@ Terminals
 'if' 'then' 'else' 'while' 'not' 'and' 'or'
 '+' '-' '*' '/' '%' '^' '>=' '<=' '!=' '==' '<' '>' '='
 '(' ')' '[' ']' ',' ';' '|' '.'
-int float string char atom var bool
+int float string char atom var bool nil
 module_id.
 
 Rootsymbol program.
@@ -115,6 +115,7 @@ literal -> var : '$1'.
 literal -> atom : '$1'.
 literal -> char : '$1'.
 literal -> string : '$1'.
+literal -> nil : '$1'.
 
 Erlang code.
 

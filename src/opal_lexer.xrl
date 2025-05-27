@@ -36,6 +36,7 @@ and         : {token, {'and', TokenLoc}}.
 or          : {token, {'or', TokenLoc}}.
 true        : {token, {bool, TokenLoc, true}}.
 false       : {token, {bool, TokenLoc, false}}.
+nil         : {token, {'nil', TokenLoc}}.
 
 
 % Operators

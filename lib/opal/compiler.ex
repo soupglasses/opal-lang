@@ -209,6 +209,7 @@ defmodule Opal.Compiler do
   defp generate_core({:atom, pos, value}, env), do: {ann_c_atom(ann(pos), value), env}
   defp generate_core({:string, pos, value}, env), do: {ann_c_string(ann(pos), value), env}
   defp generate_core({:char, pos, value}, env), do: {ann_c_char(ann(pos), value), env}
+  defp generate_core({:nil, pos}, env), do: {ann_c_atom(ann(pos), :nil), env}
 
   # Optimization to use `is_literal_term()` for certain args when `let _n = arg` is redundant.
   defp generate_core({:apply, loc, {{:var, name_pos, name}, {:args, args}}}, env0) do

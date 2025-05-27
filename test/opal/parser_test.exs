@@ -92,6 +92,11 @@ defmodule Opal.ParserTest do
                {:ok, [[{{:<, {1, 3}}, {:int, {1, 1}, 2}, {:int, {1, 5}, 3}}]]}
     end
 
+    test "parses nil" do
+      assert Parser.parse(Lexer.tokenize!("nil")) ==
+               {:ok, [[{:nil, {1, 1}}]]}
+    end
+
     test "parses variable assignments" do
     end
 
