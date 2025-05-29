@@ -94,7 +94,29 @@ defmodule Opal.ParserTest do
 
     test "parses nil" do
       assert Parser.parse(Lexer.tokenize!("nil")) ==
-               {:ok, [[{:nil, {1, 1}}]]}
+               {:ok, [[{nil, {1, 1}}]]}
+    end
+
+    test "parses complex 'and' correctly" do
+      assert Parser.parse(Lexer.tokenize!("1 < 2 and 3 < 4")) ==
+               {:ok,
+                [
+                  [
+                    {{:and, {1, 7}}, {{:<, {1, 3}}, {:int, {1, 1}, 1}, {:int, {1, 5}, 2}},
+                     {{:<, {1, 13}}, {:int, {1, 11}, 3}, {:int, {1, 15}, 4}}}
+                  ]
+                ]}
+    end
+
+    test "parses complex 'or' correctly" do
+      assert Parser.parse(Lexer.tokenize!("2 < 1 or 3 < 4")) ==
+               {:ok,
+                [
+                  [
+                    {{:or, {1, 7}}, {{:<, {1, 3}}, {:int, {1, 1}, 2}, {:int, {1, 5}, 1}},
+                     {{:<, {1, 12}}, {:int, {1, 10}, 3}, {:int, {1, 14}, 4}}}
+                  ]
+                ]}
     end
 
     test "parses variable assignments" do

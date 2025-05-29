@@ -83,27 +83,25 @@ fun_call -> atom '.' var '(' args ')' :
     {call, pos('$1'), {'$1', '$3', '$5'}}.
 
 expr -> fun_call : '$1'.
-expr -> expr bop expr : {'$2', '$1', '$3'}.
-expr -> uop expr : {'$1', '$2'}.
 expr -> '(' expr ')' : '$2'.
+expr -> uop expr : {'$1', '$2'}.
+expr -> expr 'and' expr : {'$2', '$1', '$3'}.
+expr -> expr 'or' expr : {'$2', '$1', '$3'}.
+expr -> expr '==' expr : {'$2', '$1', '$3'}.
+expr -> expr '!=' expr : {'$2', '$1', '$3'}.
+expr -> expr '<' expr : {'$2', '$1', '$3'}.
+expr -> expr '>' expr : {'$2', '$1', '$3'}.
+expr -> expr '<=' expr : {'$2', '$1', '$3'}.
+expr -> expr '>=' expr : {'$2', '$1', '$3'}.
+expr -> expr '+' expr : {'$2', '$1', '$3'}.
+expr -> expr '-' expr : {'$2', '$1', '$3'}.
+expr -> expr '*' expr : {'$2', '$1', '$3'}.
+expr -> expr '/' expr : {'$2', '$1', '$3'}.
+expr -> expr '%' expr : {'$2', '$1', '$3'}.
+expr -> expr '^' expr : {'$2', '$1', '$3'}.
 expr -> literal : '$1'.
 %expr -> '[' ']' : {list, []}.
 %expr -> '[' arg_items ']' : {list, '$2'}.
-
-bop -> 'and' : '$1'.
-bop -> 'or' : '$1'.
-bop -> '+' : '$1'.
-bop -> '-' : '$1'.
-bop -> '*' : '$1'.
-bop -> '/' : '$1'.
-bop -> '%' : '$1'.
-bop -> '^' : '$1'.
-bop -> '>=' : '$1'.
-bop -> '<=' : '$1'.
-bop -> '!=' : '$1'.
-bop -> '==' : '$1'.
-bop -> '<' : '$1'.
-bop -> '>' : '$1'.
 
 uop -> 'not' : '$1'.
 uop -> '-' : '$1'.

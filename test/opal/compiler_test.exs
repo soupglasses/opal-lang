@@ -35,6 +35,8 @@ defmodule Opal.CompilerTest do
     end
 
     test "short-circuiting logical operators" do
+      assert true == Opal.run("1 < 2 and 3 < 4")
+      assert true == Opal.run("2 < 1 or 3 < 4")
       assert true == Opal.run("true or 1 / 0")
       assert false == Opal.run("false and 1 / 0")
     end
