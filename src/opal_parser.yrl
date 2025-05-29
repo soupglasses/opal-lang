@@ -1,20 +1,19 @@
 Nonterminals
 program module_def module_blocks module_block
 statements statement patterns pattern_items pattern
-args arg_items arg fun_call expr bop uop literal.
+args arg_items arg fun_call expr uop literal.
 
 Terminals
 'module' 'do' 'end' 'fn'
 'if' 'then' 'else' 'while' 'not' 'and' 'or'
 '+' '-' '*' '/' '%' '^' '>=' '<=' '!=' '==' '<' '>' '='
-'(' ')' '[' ']' ',' ';' '|' '.'
+'(' ')' ',' ';' '.'
 int float string char atom var bool nil
 module_id.
 
 Rootsymbol program.
 
 % Operator precedence
-Left     100 '|'.
 Left     200 'and'.
 Left     200 'or'.
 Nonassoc 300 '=='.

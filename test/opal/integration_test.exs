@@ -68,9 +68,9 @@ defmodule Opal.IntegrationTest do
       # Parse error: Incomplete expression
       assert {:error, _} = Opal.run("1 +")
       # Compile error: Unbound variable
-      assert {:error, _, _} = Opal.run("x")
+      assert {:error, _, _} = Opal.run("x", [])
       # Runtime error: Division by zero
-      assert_raise ArithmeticError, fn -> Opal.run("1 / 0") end
+      assert_raise ArithmeticError, fn -> Opal.run("1 / 0", []) end
     end
   end
 end
