@@ -145,6 +145,21 @@ defmodule Opal.Compiler do
      ), env1}
   end
 
+  def error_clause({kind, arity}, env0) do
+    {error_args, env1} = new_c_vars(arity, env0)
+
+    {ann_c_clause(
+       ann(:compiler_generated),
+       error_args,
+       ann_c_call(
+         ann(:compiler_generated),
+         c_atom(:erlang),
+         c_atom(:error),
+         [c_tuple([c_atom(kind)] ++ error_args)]
+       )
+     ), env1}
+  end
+
   defp generate_core([{{:=, loc}, lhs, rhs} | body], env0) do
     with {lhs_eval, env1} = generate_core(lhs, env0),
          {rhs_eval, env2} = generate_core(rhs, env1) do
@@ -183,6 +198,34 @@ defmodule Opal.Compiler do
     {patterns_eval, env1}
   end
 
+  defp generate_core({{:and, loc}, left, right}, env) do
+    with {left_eval, env1} = generate_core(left, env),
+         {right_eval, env2} = generate_core(right, env1),
+         {badarg_clause, env3} = error_clause({:badarg, 1}, env2),
+         {badmatch_clause, env4} = default_clause({:badmatch, 1}, env3) do
+      {ann_c_case(ann(loc), left_eval, [
+         c_clause([{:c_literal, [], true}], right_eval),
+         c_clause([{:c_literal, [], false}], {:c_literal, ann(:compiler_generated), false}),
+         badarg_clause,
+         badmatch_clause
+       ]), env4}
+    end
+  end
+
+  defp generate_core({{:or, loc}, left, right}, env) do
+    with {left_eval, env1} = generate_core(left, env),
+         {right_eval, env2} = generate_core(right, env1),
+         {badarg_clause, env3} = error_clause({:badarg, 1}, env2),
+         {badmatch_clause, env4} = default_clause({:badmatch, 1}, env3) do
+      {ann_c_case(ann(loc), left_eval, [
+         c_clause([{:c_literal, [], true}], {:c_literal, ann(:compiler_generated), true}),
+         c_clause([{:c_literal, [], false}], right_eval),
+         badarg_clause,
+         badmatch_clause
+       ]), env4}
+    end
+  end
+
   # For empty patterns and args.
   defp generate_core([], env) do
     {[], env}
@@ -209,7 +252,7 @@ defmodule Opal.Compiler do
   defp generate_core({:atom, pos, value}, env), do: {ann_c_atom(ann(pos), value), env}
   defp generate_core({:string, pos, value}, env), do: {ann_c_string(ann(pos), value), env}
   defp generate_core({:char, pos, value}, env), do: {ann_c_char(ann(pos), value), env}
-  defp generate_core({:nil, pos}, env), do: {ann_c_atom(ann(pos), :nil), env}
+  defp generate_core({nil, pos}, env), do: {ann_c_atom(ann(pos), nil), env}
 
   # Optimization to use `is_literal_term()` for certain args when `let _n = arg` is redundant.
   defp generate_core({:apply, loc, {{:var, name_pos, name}, {:args, args}}}, env0) do
@@ -428,30 +471,6 @@ defmodule Opal.Compiler do
          c_atom(:not),
          [body_expr]
        ), env1}
-    end
-  end
-
-  defp generate_core({{:and, loc}, left, right}, env) do
-    with {left_expr, env1} = generate_core(left, env),
-         {right_expr, env2} = generate_core(right, env1) do
-      {ann_c_call(
-         ann(loc),
-         c_atom(:erlang),
-         c_atom(:and),
-         [left_expr, right_expr]
-       ), env2}
-    end
-  end
-
-  defp generate_core({{:or, loc}, left, right}, env) do
-    with {left_expr, env1} = generate_core(left, env),
-         {right_expr, env2} = generate_core(right, env1) do
-      {ann_c_call(
-         ann(loc),
-         c_atom(:erlang),
-         c_atom(:or),
-         [left_expr, right_expr]
-       ), env2}
     end
   end
 

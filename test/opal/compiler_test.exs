@@ -34,6 +34,11 @@ defmodule Opal.CompilerTest do
       assert true == Opal.run("false or true")
     end
 
+    test "short-circuiting logical operators" do
+      assert true == Opal.run("true or 1 / 0")
+      assert false == Opal.run("false and 1 / 0")
+    end
+
     test "string" do
       assert ~c"Hello world!" == Opal.run("\"Hello world!\"")
     end
