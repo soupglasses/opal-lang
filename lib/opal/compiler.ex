@@ -3,29 +3,42 @@ defmodule Opal.Compiler do
   Compiler to Core Erlang for Opal.
   """
 
+  alias Opal.Utils
+
   import :cerl
 
-  def compile(ast) do
-    # TODO: Multiple modules in a single AST?
-    # TODO: Filenames?
+  # TODO: Multiple modules in a single AST?
+  def compile(ast, path \\ nil) do
+    # If path, moduleize it and use as a fallback for module_name.
+    module_name = case path do
+      nil -> :"Opal.Script"
+      path -> Utils.moduleize(path) |> String.to_atom()
+    end
+    path = to_charlist(path || "no_file")
+
     case ast do
-      {:module, loc, {{:module_id, _, name}, blocks}} -> generate_module(loc, {name, blocks})
-      blocks when is_list(blocks) -> generate_module(nil, {:"Opal.Script", blocks})
+      # TODO: Ensure module_name here is the same as the given input.
+      {:module, loc, {{:module_id, _, module_name}, blocks}} -> generate_module(loc, {path, module_name, blocks})
+      blocks when is_list(blocks) -> generate_module(nil, {path, module_name, blocks})
     end
   end
 
   def init_env() do
     %{
+      file: ~c"",
       fun_names: [],
       fun_clauses: %{},
       local_var_count: 0
     }
   end
 
-  def generate_module(loc, {module_name, blocks_ast}) do
+  def generate_module(loc, {path, module_name, blocks_ast}) do
+    # Add path to env.
+    env0 = %{init_env() | file: path}
+
     # Adds functions to env, append exprs together.
     {exprs_ast, env1} =
-      Enum.reduce(blocks_ast, {[], init_env()}, fn
+      Enum.reduce(blocks_ast, {[], env0}, fn
         {:function, loc, {{:var, _, name}, args, body}}, {exprs, env_acc} ->
           env_new = add_fun_clause(loc, {name, args, body}, env_acc)
           {exprs, env_new}
@@ -39,6 +52,8 @@ defmodule Opal.Compiler do
     env =
       if exprs_ast != [] do
         # HACK: Reshape :c_var back into AST :var for `add_fun_clause`.
+        # WARN: Adds `file` annotation to compiler generated section.
+        # Fix would be to allow `c_` to pass through generate_core.
         {{:c_var, ann, name}, env2} = new_c_var(env1)
         add_fun_clause(nil, {:main, {:patterns, [{:var, ann, name}]}, exprs_ast}, env2)
       else
@@ -72,7 +87,8 @@ defmodule Opal.Compiler do
       # exports: [V1, ...] where V is fname var.
       exports,
       # attributes: [{K1, T1}, ...] where K is atom, T is constant. like 'file: name'
-      [],
+      # [{[97|[115|[100|[46|[101|[114|[108]]]]]]],1}]
+      [{c_atom(~c"file"), c_tuple([c_string(env.file), c_int(1)])}], # TODO: Assumes module is on line 1.
       # definitions: [{V1, F1}, ...] where V is fname var, F is fun type.
       definitions
     )
@@ -96,7 +112,7 @@ defmodule Opal.Compiler do
 
     clause_expr =
       ann_c_clause(
-        ann(loc),
+        ann(loc, env3),
         args_expr,
         body_expr
       )
@@ -174,9 +190,9 @@ defmodule Opal.Compiler do
       if Enum.all?(lhs_eval, &is_literal/1) do
         {badmatch_clause, env4} = default_clause({:badmatch, length(lhs_eval)}, env3)
 
-        {ann_c_case(ann(loc), rhs_eval, [c_clause(lhs_eval, body_eval), badmatch_clause]), env4}
+        {ann_c_case(ann(loc, env4), rhs_eval, [c_clause(lhs_eval, body_eval), badmatch_clause]), env4}
       else
-        {ann_c_let(ann(loc), lhs_eval, rhs_eval, body_eval), env3}
+        {ann_c_let(ann(loc, env3), lhs_eval, rhs_eval, body_eval), env3}
       end
     end
   end
@@ -203,7 +219,7 @@ defmodule Opal.Compiler do
          {right_eval, env2} = generate_core(right, env1),
          {badarg_clause, env3} = error_clause({:badarg, 1}, env2),
          {badmatch_clause, env4} = default_clause({:badmatch, 1}, env3) do
-      {ann_c_case(ann(loc), left_eval, [
+      {ann_c_case(ann(loc, env4), left_eval, [
          c_clause([{:c_literal, [], true}], right_eval),
          c_clause([{:c_literal, [], false}], {:c_literal, ann(:compiler_generated), false}),
          badarg_clause,
@@ -217,7 +233,7 @@ defmodule Opal.Compiler do
          {right_eval, env2} = generate_core(right, env1),
          {badarg_clause, env3} = error_clause({:badarg, 1}, env2),
          {badmatch_clause, env4} = default_clause({:badmatch, 1}, env3) do
-      {ann_c_case(ann(loc), left_eval, [
+      {ann_c_case(ann(loc, env4), left_eval, [
          c_clause([{:c_literal, [], true}], {:c_literal, ann(:compiler_generated), true}),
          c_clause([{:c_literal, [], false}], right_eval),
          badarg_clause,
@@ -243,16 +259,15 @@ defmodule Opal.Compiler do
   end
 
   # TODO: Missing module_id and Opal function calls.
-  # TODO: Missing char.
   # TODO: Missing list.
-  defp generate_core({:var, pos, value}, env), do: {ann_c_var(ann(pos), value), env}
-  defp generate_core({:int, pos, value}, env), do: {ann_c_int(ann(pos), value), env}
-  defp generate_core({:float, pos, value}, env), do: {ann_c_float(ann(pos), value), env}
-  defp generate_core({:bool, pos, value}, env), do: {{:c_literal, ann(pos), value}, env}
-  defp generate_core({:atom, pos, value}, env), do: {ann_c_atom(ann(pos), value), env}
-  defp generate_core({:string, pos, value}, env), do: {ann_c_string(ann(pos), value), env}
-  defp generate_core({:char, pos, value}, env), do: {ann_c_char(ann(pos), value), env}
-  defp generate_core({nil, pos}, env), do: {ann_c_atom(ann(pos), nil), env}
+  defp generate_core({:var, pos, value}, env), do: {ann_c_var(ann(pos, env), value), env}
+  defp generate_core({:int, pos, value}, env), do: {ann_c_int(ann(pos, env), value), env}
+  defp generate_core({:float, pos, value}, env), do: {ann_c_float(ann(pos, env), value), env}
+  defp generate_core({:bool, pos, value}, env), do: {{:c_literal, ann(pos, env), value}, env}
+  defp generate_core({:atom, pos, value}, env), do: {ann_c_atom(ann(pos, env), value), env}
+  defp generate_core({:string, pos, value}, env), do: {ann_c_string(ann(pos, env), value), env}
+  defp generate_core({:char, pos, value}, env), do: {ann_c_char(ann(pos, env), value), env}
+  defp generate_core({nil, pos}, env), do: {ann_c_atom(ann(pos, env), nil), env}
 
   # Optimization to use `is_literal_term()` for certain args when `let _n = arg` is redundant.
   defp generate_core({:apply, loc, {{:var, name_pos, name}, {:args, args}}}, env0) do
@@ -261,8 +276,8 @@ defmodule Opal.Compiler do
 
     {apply_eval, env2} =
       {ann_c_apply(
-         ann(loc),
-         ann_c_fname(ann(name_pos), name, arity),
+         ann(loc, env1),
+         ann_c_fname(ann(name_pos, env1), name, arity),
          c_vars
        ), env1}
 
@@ -277,6 +292,14 @@ defmodule Opal.Compiler do
     {body_eval, env3}
   end
 
+  # defp generate_core({:if, loc, {}, env0) do
+  #  arity = length(args)
+  #  {c_vars, env1} = new_c_vars(arity, env0)
+  #  {if_clause, env2} = default_clause({:if_clause, length(lhs_eval)}, env1)
+
+  #  {ann_c_case(ann(loc), rhs_eval, [c_clause(lhs_eval, body1_eval), c_clause(rhs_eval, body2_eval) badmatch_clause]), env2}
+  # end
+
   # TODO: Deduplicate between :apply and :call
   defp generate_core({:call, loc, {module, {:var, name_pos, name}, {:args, args}}}, env0) do
     arity = length(args)
@@ -285,9 +308,9 @@ defmodule Opal.Compiler do
 
     {apply_eval, env3} =
       {ann_c_call(
-         ann(loc),
+         ann(loc, env2),
          module_expr,
-         ann_c_atom(ann(name_pos), name),
+         ann_c_atom(ann(name_pos, env2), name),
          c_vars
        ), env2}
 
@@ -310,7 +333,7 @@ defmodule Opal.Compiler do
     with {left_expr, env1} = generate_core(left, env),
          {right_expr, env2} = generate_core(right, env1) do
       {ann_c_call(
-         ann(loc),
+         ann(loc, env2),
          c_atom(:erlang),
          c_atom(:+),
          [left_expr, right_expr]
@@ -322,7 +345,7 @@ defmodule Opal.Compiler do
     with {left_expr, env1} = generate_core(left, env),
          {right_expr, env2} = generate_core(right, env1) do
       {ann_c_call(
-         ann(loc),
+         ann(loc, env2),
          c_atom(:erlang),
          c_atom(:-),
          [left_expr, right_expr]
@@ -334,7 +357,7 @@ defmodule Opal.Compiler do
     with {left_expr, env1} = generate_core(left, env),
          {right_expr, env2} = generate_core(right, env1) do
       {ann_c_call(
-         ann(loc),
+         ann(loc, env2),
          c_atom(:erlang),
          c_atom(:*),
          [left_expr, right_expr]
@@ -347,7 +370,7 @@ defmodule Opal.Compiler do
     with {left_expr, env1} = generate_core(left, env),
          {right_expr, env2} = generate_core(right, env1) do
       {ann_c_call(
-         ann(loc),
+         ann(loc, env2),
          c_atom(:erlang),
          c_atom(:/),
          [left_expr, right_expr]
@@ -360,7 +383,7 @@ defmodule Opal.Compiler do
     with {left_expr, env1} = generate_core(left, env),
          {right_expr, env2} = generate_core(right, env1) do
       {ann_c_call(
-         ann(loc),
+         ann(loc, env2),
          c_atom(:math),
          c_atom(:pow),
          [left_expr, right_expr]
@@ -372,7 +395,7 @@ defmodule Opal.Compiler do
     with {left_expr, env1} = generate_core(left, env),
          {right_expr, env2} = generate_core(right, env1) do
       {ann_c_call(
-         ann(loc),
+         ann(loc, env2),
          c_atom(:erlang),
          c_atom(:rem),
          [left_expr, right_expr]
@@ -384,7 +407,7 @@ defmodule Opal.Compiler do
     with {left_expr, env1} = generate_core(left, env),
          {right_expr, env2} = generate_core(right, env1) do
       {ann_c_call(
-         ann(loc),
+         ann(loc, env2),
          c_atom(:erlang),
          c_atom(:==),
          [left_expr, right_expr]
@@ -396,7 +419,7 @@ defmodule Opal.Compiler do
     with {left_expr, env1} = generate_core(left, env),
          {right_expr, env2} = generate_core(right, env1) do
       {ann_c_call(
-         ann(loc),
+         ann(loc, env2),
          c_atom(:erlang),
          c_atom(:"/="),
          [left_expr, right_expr]
@@ -408,7 +431,7 @@ defmodule Opal.Compiler do
     with {left_expr, env1} = generate_core(left, env),
          {right_expr, env2} = generate_core(right, env1) do
       {ann_c_call(
-         ann(loc),
+         ann(loc, env2),
          c_atom(:erlang),
          c_atom(:"=<"),
          [left_expr, right_expr]
@@ -420,7 +443,7 @@ defmodule Opal.Compiler do
     with {left_expr, env1} = generate_core(left, env),
          {right_expr, env2} = generate_core(right, env1) do
       {ann_c_call(
-         ann(loc),
+         ann(loc, env2),
          c_atom(:erlang),
          c_atom(:<),
          [left_expr, right_expr]
@@ -432,7 +455,7 @@ defmodule Opal.Compiler do
     with {left_expr, env1} = generate_core(left, env),
          {right_expr, env2} = generate_core(right, env1) do
       {ann_c_call(
-         ann(loc),
+         ann(loc, env2),
          c_atom(:erlang),
          c_atom(:>=),
          [left_expr, right_expr]
@@ -444,7 +467,7 @@ defmodule Opal.Compiler do
     with {left_expr, env1} = generate_core(left, env),
          {right_expr, env2} = generate_core(right, env1) do
       {ann_c_call(
-         ann(loc),
+         ann(loc, env2),
          c_atom(:erlang),
          c_atom(:>),
          [left_expr, right_expr]
@@ -455,7 +478,7 @@ defmodule Opal.Compiler do
   defp generate_core({{:-, loc}, body}, env) do
     with {body_expr, env1} = generate_core(body, env) do
       {ann_c_call(
-         ann(loc),
+         ann(loc, env1),
          c_atom(:erlang),
          c_atom(:-),
          [body_expr]
@@ -466,7 +489,7 @@ defmodule Opal.Compiler do
   defp generate_core({{:not, loc}, body}, env) do
     with {body_expr, env1} = generate_core(body, env) do
       {ann_c_call(
-         ann(loc),
+         ann(loc, env1),
          c_atom(:erlang),
          c_atom(:not),
          [body_expr]
@@ -479,4 +502,7 @@ defmodule Opal.Compiler do
   def ann({}), do: []
   def ann(list) when is_list(list), do: Enum.flat_map(list, &ann/1)
   def ann(thing), do: [thing]
+  def ann(any, env) do
+    ann([any, {:file, env.file}])
+  end
 end

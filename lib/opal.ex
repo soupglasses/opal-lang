@@ -17,19 +17,31 @@ defmodule Opal do
     end
   end
 
-  def compile(code), do: compile(code, [:report])
-
-  def compile(code, opts) do
+  def compile(code, opts \\ []) do
     with {:ok, ast} <- parse(code) do
-      Compiler.compile(ast)
+      Compiler.compile(ast, Keyword.get(opts, :path))
       |> tap(fn line -> if :verbose in opts, do: IO.inspect(line) end)
-      |> :compile.forms([:from_core, :verbose, :return] ++ opts)
+      |> :compile.forms([:from_core, :verbose, :return, :report])
     end
   end
 
-  def to_core(code), do: to_core(code, [:report])
+  def compile_to_file(code, opts \\ []) do
+    # Create default filename be `./a.out` if no path is given, mimmicing GNU C compiler.
+    filename = case Keyword.get(opts, :path, "a") do
+      path when binary_part(path, byte_size(path) - 5, 5) == ".opal" -> String.replace_suffix(path, ".opal", "")
+      path -> path <> ".out"
+    end
 
-  def to_core(code, opts) do
+    {:ok, _module_name, binary, _warnings} = compile(code, opts)
+    {:ok, escript_binary} = :escript.create(:binary, [:shebang, {:beam, binary}])
+    # TODO: Check if moduleize(path) == module_name before writing? Avoids `cat.opal` containing `module Dog do ... end` confusion.
+    File.write!(filename, escript_binary)
+    File.chmod!(filename, 0o755)
+
+    {:ok, filename}
+  end
+
+  def to_core(code, opts \\ []) do
     with {:ok, ast} <- parse(code) do
       Compiler.compile(ast)
       |> tap(fn line -> if :verbose in opts, do: IO.inspect(line) end)
@@ -38,20 +50,22 @@ defmodule Opal do
     end
   end
 
-  def load(code), do: load(code, [:report])
+  def load(code, opts \\ []) do
+    path = case Keyword.get(opts, :path) do
+      nil -> ~c"nopath"
+      path -> to_charlist(path)
+    end
 
-  def load(code, opts) do
     with {:ok, module_name, binary, _warnings} <- compile(code, opts) do
-      :code.load_binary(module_name, ~c"nopath", binary)
+      :code.load_binary(module_name, path, binary)
     end
   end
 
-  def run(code), do: run(code, [:report])
+  def run(code, opts \\ []) do
+    args = Keyword.get(opts, :args, []) |> Enum.map(&Kernel.to_charlist/1)
 
-  # TODO: Use core_eval?
-  def run(code, opts) do
     with {:module, module} <- load(code, opts) do
-      module.main(~c"")
+      module.main(args)
     end
   end
 end

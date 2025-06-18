@@ -25,9 +25,35 @@ sudo zypper install elixir # for SUSE/openSUSE
 
 ## Running
 
+Compile a file:
+```bash
+$ mix opal.compile examples/the_answer.opal
+```
+
+Run a file:
+```bash
+$ mix opal.run examples/the_answer.opal
+42
+```
+
+Run code directly from Elixir:
 ```bash
 $ iex -S mix
-Opal.run("fn the_answer_to_everything() do 42 end the_answer_to_everything()")
+iex(1)> Opal.run("fn the_answer_to_everything() do 42 end the_answer_to_everything()")
+42
+```
+
+## Compile & Install
+
+```bash
+MIX_ENV=prod mix do escript.build + escript.install
+```
+
+This will install opal to `~/.mix/escripts/opal`. Ensure `~/.mix/escripts` is in your `$PATH`.
+
+To uninstall:
+```bash
+MIX_ENV=prod mix escript.uninstall opal
 ```
 
 ## Testing
