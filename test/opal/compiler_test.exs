@@ -21,7 +21,7 @@ defmodule Opal.CompilerTest do
     end
 
     test "trail of thought not lost" do
-      assert 42 == Opal.run("x = 42; 1; 2; 3; 4; 5; x", [])
+      assert 42 == Opal.run("x = 42; 1; 2; 3; 4; 5; x", [compiler_opts: []])
     end
 
     test "unary operators" do
@@ -37,8 +37,8 @@ defmodule Opal.CompilerTest do
     test "short-circuiting logical operators" do
       assert true == Opal.run("1 < 2 and 3 < 4")
       assert true == Opal.run("2 < 1 or 3 < 4")
-      assert true == Opal.run("true or 1 / 0", [])
-      assert false == Opal.run("false and 1 / 0", [])
+      assert true == Opal.run("true or 1 / 0", [compiler_opts: []])
+      assert false == Opal.run("false and 1 / 0", [compiler_opts: []])
     end
 
     test "string" do

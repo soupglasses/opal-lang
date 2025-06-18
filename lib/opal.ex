@@ -21,7 +21,7 @@ defmodule Opal do
     with {:ok, ast} <- parse(code) do
       Compiler.compile(ast, Keyword.get(opts, :path))
       |> tap(fn line -> if :verbose in opts, do: IO.inspect(line) end)
-      |> :compile.forms([:from_core, :verbose, :return, :report])
+      |> :compile.forms([:from_core, :verbose, :return] ++ Keyword.get(opts, :compiler_opts, [:report]))
     end
   end
 
