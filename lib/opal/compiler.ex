@@ -10,16 +10,21 @@ defmodule Opal.Compiler do
   # TODO: Multiple modules in a single AST?
   def compile(ast, path \\ nil) do
     # If path, moduleize it and use as a fallback for module_name.
-    module_name = case path do
-      nil -> :"Opal.Script"
-      path -> Utils.moduleize(path) |> String.to_atom()
-    end
+    module_name =
+      case path do
+        nil -> :"Opal.Script"
+        path -> Utils.moduleize(path) |> String.to_atom()
+      end
+
     path = to_charlist(path || "no_file")
 
     case ast do
       # TODO: Ensure module_name here is the same as the given input.
-      {:module, loc, {{:module_id, _, module_name}, blocks}} -> generate_module(loc, {path, module_name, blocks})
-      blocks when is_list(blocks) -> generate_module(nil, {path, module_name, blocks})
+      {:module, loc, {{:module_id, _, module_name}, blocks}} ->
+        generate_module(loc, {path, module_name, blocks})
+
+      blocks when is_list(blocks) ->
+        generate_module(nil, {path, module_name, blocks})
     end
   end
 
@@ -88,7 +93,8 @@ defmodule Opal.Compiler do
       exports,
       # attributes: [{K1, T1}, ...] where K is atom, T is constant. like 'file: name'
       # [{[97|[115|[100|[46|[101|[114|[108]]]]]]],1}]
-      [{c_atom(~c"file"), c_tuple([c_string(env.file), c_int(1)])}], # TODO: Assumes module is on line 1.
+      # TODO: Assumes module is on line 1.
+      [{c_atom(~c"file"), c_tuple([c_string(env.file), c_int(1)])}],
       # definitions: [{V1, F1}, ...] where V is fname var, F is fun type.
       definitions
     )
@@ -190,7 +196,8 @@ defmodule Opal.Compiler do
       if Enum.all?(lhs_eval, &is_literal/1) do
         {badmatch_clause, env4} = default_clause({:badmatch, length(lhs_eval)}, env3)
 
-        {ann_c_case(ann(loc, env4), rhs_eval, [c_clause(lhs_eval, body_eval), badmatch_clause]), env4}
+        {ann_c_case(ann(loc, env4), rhs_eval, [c_clause(lhs_eval, body_eval), badmatch_clause]),
+         env4}
       else
         {ann_c_let(ann(loc, env3), lhs_eval, rhs_eval, body_eval), env3}
       end
@@ -502,6 +509,7 @@ defmodule Opal.Compiler do
   def ann({}), do: []
   def ann(list) when is_list(list), do: Enum.flat_map(list, &ann/1)
   def ann(thing), do: [thing]
+
   def ann(any, env) do
     ann([any, {:file, env.file}])
   end

@@ -33,15 +33,22 @@ defmodule Opal.CLI do
   end
 
   defp parse_args(args) do
-    {parsed_opts, path_and_args, []} = OptionParser.parse(args,
-      aliases: [c: :compile, h: :help, v: :verbose],
-      strict: [compile: :boolean, help: :boolean, verbose: :boolean]
-    )
+    {parsed_opts, path_and_args, []} =
+      OptionParser.parse(args,
+        aliases: [c: :compile, h: :help, v: :verbose],
+        strict: [compile: :boolean, help: :boolean, verbose: :boolean]
+      )
 
     cond do
-      should_show_help?(parsed_opts) -> {:help}
-      Enum.empty?(path_and_args) -> {:error, "No file specified"}
-      compile_with_args?(parsed_opts, path_and_args) -> {:error, "Arguments cannot be passed when compiling"}
+      should_show_help?(parsed_opts) ->
+        {:help}
+
+      Enum.empty?(path_and_args) ->
+        {:error, "No file specified"}
+
+      compile_with_args?(parsed_opts, path_and_args) ->
+        {:error, "Arguments cannot be passed when compiling"}
+
       true ->
         [path | program_args] = path_and_args
         {:ok, path, program_args, build_options(parsed_opts)}
@@ -74,18 +81,20 @@ defmodule Opal.CLI do
 
   defp process_file(path, program_args, options) do
     case File.read(path) do
-      {:ok, contents} -> 
+      {:ok, contents} ->
         execute_command(contents, path, program_args, options)
-      {:error, reason} -> 
+
+      {:error, reason} ->
         show_error("Could not read file '#{path}': #{reason}")
     end
   end
 
   defp execute_command(contents, path, program_args, options) do
-    opts = options
-           |> Keyword.put(:path, path)
-           |> Keyword.put(:args, program_args)
-    
+    opts =
+      options
+      |> Keyword.put(:path, path)
+      |> Keyword.put(:args, program_args)
+
     if Keyword.get(options, :compile, false) do
       Opal.compile_to_file(contents, opts)
     else

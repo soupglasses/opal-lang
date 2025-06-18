@@ -63,7 +63,7 @@ defmodule Opal.LexerTest do
     end
 
     test "tokenizes nil" do
-      assert Lexer.tokenize("nil") == {:ok, [{:nil, {1,1}}]}
+      assert Lexer.tokenize("nil") == {:ok, [{nil, {1, 1}}]}
     end
 
     # TODO: Module Identifiers
