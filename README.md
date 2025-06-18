@@ -25,15 +25,15 @@ sudo zypper install elixir # for SUSE/openSUSE
 
 ## Running
 
-Compile a file:
-```bash
-$ mix opal.compile examples/the_answer.opal
-```
-
 Run a file:
 ```bash
-$ mix opal.run examples/the_answer.opal
+$ mix opal examples/the_answer.opal
 42
+```
+
+Compile a file:
+```bash
+$ mix opal --compile examples/the_answer.opal
 ```
 
 Run code directly from Elixir:
