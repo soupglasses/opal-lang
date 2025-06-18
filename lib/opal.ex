@@ -20,7 +20,7 @@ defmodule Opal do
   def compile(code, opts \\ []) do
     with {:ok, ast} <- parse(code) do
       Compiler.compile(ast, Keyword.get(opts, :path))
-      |> tap(fn line -> if :verbose in opts, do: IO.inspect(line) end)
+      |> tap(fn line -> if Keyword.get(opts, :verbose, false), do: IO.inspect(line) end)
       |> :compile.forms(
         [:from_core, :verbose, :return] ++ Keyword.get(opts, :compiler_opts, [:report])
       )
@@ -51,7 +51,7 @@ defmodule Opal do
   def to_core(code, opts \\ []) do
     with {:ok, ast} <- parse(code) do
       Compiler.compile(ast)
-      |> tap(fn line -> if :verbose in opts, do: IO.inspect(line) end)
+      |> tap(fn line -> if Keyword.get(opts, :verbose, false), do: IO.inspect(line) end)
       |> :core_pp.format()
       |> :erlang.iolist_to_binary()
     end
