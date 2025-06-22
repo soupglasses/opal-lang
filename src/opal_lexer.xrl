@@ -57,6 +57,11 @@ nil         : {token, {'nil', TokenLoc}}.
 % Delimiters
 \(              : {token, {'(', TokenLoc}}.
 \)              : {token, {')', TokenLoc}}.
+\[              : {token, {'[', TokenLoc}}.
+\]              : {token, {']', TokenLoc}}.
+\{              : {token, {'{', TokenLoc}}.
+\}              : {token, {'}', TokenLoc}}.
+\|              : {token, {'|', TokenLoc}}.
 ,               : {token, {',', TokenLoc}}.
 \.              : {token, {'.', TokenLoc}}.
 ;               : {token, {';', TokenLoc}}.

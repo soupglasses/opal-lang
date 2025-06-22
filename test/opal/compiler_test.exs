@@ -41,6 +41,41 @@ defmodule Opal.CompilerTest do
       assert false == Opal.run("false and 1 / 0", compiler_opts: [])
     end
 
+    test "lists" do
+      assert [] == Opal.run("[]")
+      assert [1] == Opal.run("[1]")
+      assert [1, 2] == Opal.run("[1, 2]")
+
+      assert [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20] ==
+               Opal.run("[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]")
+    end
+
+    test "nested lists" do
+      assert [[]] == Opal.run("[[]]")
+      assert [[1]] == Opal.run("[[1]]")
+      assert [[1], [2]] == Opal.run("[[1], [2]]")
+      assert [[1, 2], [3]] == Opal.run("[[1, 2], [3]]")
+    end
+
+    test "cons lists" do
+      assert [1] == Opal.run("[1 | []]")
+      assert [1, 2] == Opal.run("[1 | [2 | []]]")
+      assert [1, 2, 3] == Opal.run("[1 | [2 | [3 | []]]]")
+    end
+
+    test "cons lists and lists are equivalent" do
+      assert Opal.run("[1,2,3,4]") == Opal.run("[1 | [2 | [3 | [4 | []]]]]")
+      assert Opal.run("[1, [2 | [3 | [4 | []]]]]") == Opal.run("[1 | [[2,3,4]]]")
+      # assert [1, 2, 3, 4] == Opal.run("[1, 2 | [3,4]]")
+    end
+
+    test "tuples" do
+      assert {} == Opal.run("{}")
+      assert {1} == Opal.run("{1}")
+      assert {1, 2} == Opal.run("{1,2}")
+      assert {1, 2, 3, 4, 5, 6, 7, 8, 9, 10} == Opal.run("{1,2,3,4,5,6,7,8,9,10}")
+    end
+
     test "string" do
       assert ~c"Hello world!" == Opal.run("\"Hello world!\"")
     end

@@ -119,6 +119,36 @@ defmodule Opal.ParserTest do
                 ]}
     end
 
+    test "parses lists" do
+      assert Parser.parse(Lexer.tokenize!("[]")) ==
+               {:ok, [[{:list, []}]]}
+
+      assert Parser.parse(Lexer.tokenize!("[1]")) ==
+               {:ok, [[list_cons: {{:int, {1, 2}, 1}, {:list, []}}]]}
+
+      assert Parser.parse(Lexer.tokenize!("[1, 2]")) ==
+               {:ok,
+                [[list_cons: {{:int, {1, 2}, 1}, {:list_cons, {{:int, {1, 5}, 2}, {:list, []}}}}]]}
+
+      assert Parser.parse(Lexer.tokenize!("[1 | []]")) ==
+               {:ok, [[list_cons: {{:int, {1, 2}, 1}, {:list, []}}]]}
+
+      assert Parser.parse(Lexer.tokenize!("[1 | [2 | []]]")) ==
+               {:ok,
+                [[list_cons: {{:int, {1, 2}, 1}, {:list_cons, {{:int, {1, 7}, 2}, {:list, []}}}}]]}
+    end
+
+    test "parses tuples" do
+      assert Parser.parse(Lexer.tokenize!("{}")) ==
+               {:ok, [[{:tuple, []}]]}
+
+      assert Parser.parse(Lexer.tokenize!("{1}")) ==
+               {:ok, [[{:tuple, [{:int, {1, 2}, 1}]}]]}
+
+      assert Parser.parse(Lexer.tokenize!("{1, 2}")) ==
+               {:ok, [[{:tuple, [{:int, {1, 2}, 1}, {:int, {1, 5}, 2}]}]]}
+    end
+
     test "parses variable assignments" do
     end
 

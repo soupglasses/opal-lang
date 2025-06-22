@@ -275,9 +275,30 @@ defmodule Opal.Compiler do
   defp generate_core({:string, pos, value}, env), do: {ann_c_string(ann(pos, env), value), env}
   defp generate_core({:char, pos, value}, env), do: {ann_c_char(ann(pos, env), value), env}
   defp generate_core({nil, pos}, env), do: {ann_c_atom(ann(pos, env), nil), env}
+  defp generate_core({:list, []}, env), do: {{:c_literal, [], []}, env}
+  defp generate_core({:tuple, []}, env), do: {{:c_literal, [], {}}, env}
+
+  defp generate_core({:list_cons, {left, right}}, env) do
+    with {left_expr, env1} = generate_core(left, env),
+         {right_expr, env2} = generate_core(right, env1) do
+      {c_cons_skel(left_expr, right_expr), env2}
+    end
+  end
+
+  defp generate_core({:tuple, value}, env) do
+    {value_expr, env1} =
+      Enum.reduce(value, {[], env}, fn
+        arg, {eval, env_acc} ->
+          with {arg_eval, env_new} <- generate_core(arg, env_acc) do
+            {[arg_eval | eval], env_new}
+          end
+      end)
+
+    {c_tuple(Enum.reverse(value_expr)), env1}
+  end
 
   # Optimization to use `is_literal_term()` for certain args when `let _n = arg` is redundant.
-  defp generate_core({:apply, loc, {{:var, name_pos, name}, {:args, args}}}, env0) do
+  defp generate_core({:apply, loc, {{:var, name_pos, name}, args}}, env0) do
     arity = length(args)
     {c_vars, env1} = new_c_vars(arity, env0)
 
@@ -299,16 +320,8 @@ defmodule Opal.Compiler do
     {body_eval, env3}
   end
 
-  # defp generate_core({:if, loc, {}, env0) do
-  #  arity = length(args)
-  #  {c_vars, env1} = new_c_vars(arity, env0)
-  #  {if_clause, env2} = default_clause({:if_clause, length(lhs_eval)}, env1)
-
-  #  {ann_c_case(ann(loc), rhs_eval, [c_clause(lhs_eval, body1_eval), c_clause(rhs_eval, body2_eval) badmatch_clause]), env2}
-  # end
-
   # TODO: Deduplicate between :apply and :call
-  defp generate_core({:call, loc, {module, {:var, name_pos, name}, {:args, args}}}, env0) do
+  defp generate_core({:call, loc, {module, {:var, name_pos, name}, args}}, env0) do
     arity = length(args)
     {c_vars, env1} = new_c_vars(arity, env0)
     {module_expr, env2} = generate_core(module, env1)

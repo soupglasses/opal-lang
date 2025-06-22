@@ -62,6 +62,62 @@ defmodule Opal.LexerTest do
       assert Lexer.tokenize("?a") == {:ok, [{:char, {1, 1}, 97}]}
     end
 
+    test "tokenizes lists" do
+      assert Lexer.tokenize("[]") == {:ok, [{:"[", {1, 1}}, {:"]", {1, 2}}]}
+      assert Lexer.tokenize("[1]") == {:ok, [{:"[", {1, 1}}, {:int, {1, 2}, 1}, {:"]", {1, 3}}]}
+
+      assert Lexer.tokenize("[1, 2]") ==
+               {:ok,
+                [
+                  {:"[", {1, 1}},
+                  {:int, {1, 2}, 1},
+                  {:",", {1, 3}},
+                  {:int, {1, 5}, 2},
+                  {:"]", {1, 6}}
+                ]}
+
+      assert Lexer.tokenize("[1 | []]") ==
+               {:ok,
+                [
+                  {:"[", {1, 1}},
+                  {:int, {1, 2}, 1},
+                  {:|, {1, 4}},
+                  {:"[", {1, 6}},
+                  {:"]", {1, 7}},
+                  {:"]", {1, 8}}
+                ]}
+
+      assert Lexer.tokenize("[1 | [2 | []]]") ==
+               {:ok,
+                [
+                  {:"[", {1, 1}},
+                  {:int, {1, 2}, 1},
+                  {:|, {1, 4}},
+                  {:"[", {1, 6}},
+                  {:int, {1, 7}, 2},
+                  {:|, {1, 9}},
+                  {:"[", {1, 11}},
+                  {:"]", {1, 12}},
+                  {:"]", {1, 13}},
+                  {:"]", {1, 14}}
+                ]}
+    end
+
+    test "tokenizes tuples" do
+      assert Lexer.tokenize("{}") == {:ok, ["{": {1, 1}, "}": {1, 2}]}
+      assert Lexer.tokenize("{1}") == {:ok, [{:"{", {1, 1}}, {:int, {1, 2}, 1}, {:"}", {1, 3}}]}
+
+      assert Lexer.tokenize("{1, 2}") ==
+               {:ok,
+                [
+                  {:"{", {1, 1}},
+                  {:int, {1, 2}, 1},
+                  {:",", {1, 3}},
+                  {:int, {1, 5}, 2},
+                  {:"}", {1, 6}}
+                ]}
+    end
+
     test "tokenizes nil" do
       assert Lexer.tokenize("nil") == {:ok, [{nil, {1, 1}}]}
     end

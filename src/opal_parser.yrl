@@ -1,13 +1,15 @@
 Nonterminals
 program module_def module_blocks module_block
 statements statement patterns pattern_items pattern
-args arg_items arg fun_call expr uop literal.
+fun_call
+expr_list list_expr tuple_expr
+expr uop literal.
 
 Terminals
 'module' 'do' 'end' 'fn'
 'if' 'then' 'else' 'while' 'not' 'and' 'or'
 '+' '-' '*' '/' '%' '^' '>=' '<=' '!=' '==' '<' '>' '='
-'(' ')' ',' ';' '.'
+'(' ')' '[' ']' '{' '}' '|' ',' ';' '.'
 int float string char atom var bool nil
 module_id.
 
@@ -66,22 +68,33 @@ pattern -> literal : '$1'.
 %pattern -> '[' literal '|' pattern ']' :
 %    {list_pattern, pos('$2'), {'$2', '$4'}}.
 
-args -> arg_items : {args, '$1'}.
-arg_items -> arg : ['$1'].
-arg_items -> arg ',' arg_items : ['$1' | '$3'].
-
-arg -> expr : '$1'.
-
+% Local call
 fun_call -> var '(' ')' :
-    {apply, pos('$1') , {'$1', {args, []}}}.
-fun_call -> var '(' args ')' :
+    {apply, pos('$1') , {'$1', []}}.
+fun_call -> var '(' expr_list ')' :
     {apply, pos('$1') , {'$1', '$3'}}.
+% Remote call
 fun_call -> atom '.' var '(' ')' :
-    {call, pos('$1') , {'$1', '$3', {args, []}}}.
-fun_call -> atom '.' var '(' args ')' :
+    {call, pos('$1') , {'$1', '$3', []}}.
+fun_call -> atom '.' var '(' expr_list ')' :
     {call, pos('$1'), {'$1', '$3', '$5'}}.
 
+% Generic comma-seperated list of expressions.
+expr_list -> expr : ['$1'].
+expr_list -> expr ',' expr_list : ['$1' | '$3'].
+
+% List Expressions
+list_expr -> '[' ']' : {list, []}.
+list_expr -> '[' expr_list ']' : build_list_cons('$2').
+list_expr -> '[' expr '|' list_expr ']' : {list_cons, {'$2', '$4'}}.
+
+% Tuple Expressions
+tuple_expr -> '{' '}' : {tuple, []}.
+tuple_expr -> '{' expr_list '}' : {tuple, '$2'}.
+
 expr -> fun_call : '$1'.
+expr -> list_expr : '$1'.
+expr -> tuple_expr : '$1'.
 expr -> '(' expr ')' : '$2'.
 expr -> uop expr : {'$1', '$2'}.
 expr -> expr 'and' expr : {'$2', '$1', '$3'}.
@@ -99,8 +112,6 @@ expr -> expr '/' expr : {'$2', '$1', '$3'}.
 expr -> expr '%' expr : {'$2', '$1', '$3'}.
 expr -> expr '^' expr : {'$2', '$1', '$3'}.
 expr -> literal : '$1'.
-%expr -> '[' ']' : {list, []}.
-%expr -> '[' arg_items ']' : {list, '$2'}.
 
 uop -> 'not' : '$1'.
 uop -> '-' : '$1'.
@@ -115,6 +126,11 @@ literal -> string : '$1'.
 literal -> nil : '$1'.
 
 Erlang code.
+
+build_list_cons([]) -> 
+    {list, []};
+build_list_cons([H | T]) -> 
+    {list_cons, {H, build_list_cons(T)}}.
 
 pos({_Token, Pos, _Value}) -> Pos;
 pos({_Token, Pos}) -> Pos.
