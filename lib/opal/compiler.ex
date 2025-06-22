@@ -138,7 +138,7 @@ defmodule Opal.Compiler do
   def new_c_var(env0) do
     env1 = Map.update(env0, :local_var_count, 0, fn count -> count + 1 end)
 
-    {ann_c_var(ann(:compiler_generated), env1.local_var_count), env1}
+    {c_var(env1.local_var_count), env1}
   end
 
   # returns {[c_var0, ..., c_varN], env}
@@ -192,15 +192,12 @@ defmodule Opal.Compiler do
           _ -> generate_core(body, env2)
         end
 
-      # WARN: This assumes full literals lhs, or a single assignment.
-      if Enum.all?(lhs_eval, &is_literal/1) do
-        {badmatch_clause, env4} = default_clause({:badmatch, length(lhs_eval)}, env3)
+      {badmatch_clause, env4} = default_clause({:badmatch, 1}, env3)
 
-        {ann_c_case(ann(loc, env4), rhs_eval, [c_clause(lhs_eval, body_eval), badmatch_clause]),
-         env4}
-      else
-        {ann_c_let(ann(loc, env3), lhs_eval, rhs_eval, body_eval), env3}
-      end
+      {ann_c_case(ann(loc, env4), rhs_eval, [
+         c_clause([lhs_eval], body_eval),
+         badmatch_clause
+       ]), env4}
     end
   end
 
@@ -265,9 +262,16 @@ defmodule Opal.Compiler do
     end
   end
 
+  defp generate_core({:var, _pos, :_}, env) do
+    with {wildcard_eval, env1} <- new_c_var(env) do
+      {wildcard_eval, env1}
+    end
+  end
+
+  defp generate_core({:var, pos, value}, env), do: {ann_c_var(ann(pos, env), value), env}
+
   # TODO: Missing module_id and Opal function calls.
   # TODO: Missing list.
-  defp generate_core({:var, pos, value}, env), do: {ann_c_var(ann(pos, env), value), env}
   defp generate_core({:int, pos, value}, env), do: {ann_c_int(ann(pos, env), value), env}
   defp generate_core({:float, pos, value}, env), do: {ann_c_float(ann(pos, env), value), env}
   defp generate_core({:bool, pos, value}, env), do: {{:c_literal, ann(pos, env), value}, env}

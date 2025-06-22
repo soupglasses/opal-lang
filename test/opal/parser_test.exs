@@ -149,10 +149,37 @@ defmodule Opal.ParserTest do
                {:ok, [[{:tuple, [{:int, {1, 2}, 1}, {:int, {1, 5}, 2}]}]]}
     end
 
+    test "parses wildcard" do
+      assert Parser.parse(Lexer.tokenize!("_ = 42")) ==
+               {:ok, [[{{:=, {1, 3}}, {:var, {1, 1}, :_}, {:int, {1, 5}, 42}}]]}
+    end
+
     test "parses variable assignments" do
+      assert Parser.parse(Lexer.tokenize!("x = 4")) ==
+               {:ok, [[{{:=, {1, 3}}, {:var, {1, 1}, :x}, {:int, {1, 5}, 4}}]]}
+
+      assert Parser.parse(Lexer.tokenize!("4 = x")) ==
+               {:ok, [[{{:=, {1, 3}}, {:int, {1, 1}, 4}, {:var, {1, 5}, :x}}]]}
     end
 
     test "parses pattern matching assignments" do
+      assert Parser.parse(Lexer.tokenize!("[1 | x] = y")) ==
+               {:ok,
+                [
+                  [
+                    {{:=, {1, 9}}, {:list_cons, {{:int, {1, 2}, 1}, {:var, {1, 6}, :x}}},
+                     {:var, {1, 11}, :y}}
+                  ]
+                ]}
+
+      assert Parser.parse(Lexer.tokenize!("{1, 2} = x")) ==
+               {:ok,
+                [
+                  [
+                    {{:=, {1, 8}}, {:tuple, [{:int, {1, 2}, 1}, {:int, {1, 5}, 2}]},
+                     {:var, {1, 10}, :x}}
+                  ]
+                ]}
     end
 
     test "parses variable references" do

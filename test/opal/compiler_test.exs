@@ -13,7 +13,49 @@ defmodule Opal.CompilerTest do
 
     test "wildcard" do
       # TODO: Does not properly test wildcard, needs tuple or list in pattern.
-      assert 42 == Opal.run("_ = 42")
+      assert 42 == Opal.run("_ = 42", compiler_opts: [])
+    end
+
+    test "assignment" do
+      assert 42 == Opal.run("x = 42", compiler_opts: [])
+      assert 42 == Opal.run("x = 42; 69; x", compiler_opts: [])
+    end
+
+    test "pattern matching lists" do
+      # Empty
+      assert [] == Opal.run("[] = []")
+      assert [] == Opal.run("x = []; x")
+
+      # Random
+      assert [42] == Opal.run("[x] = [42]")
+      assert :atom == Opal.run("[x] = [:atom]; x")
+      assert [2, 3] == Opal.run("[1 | x] = [1,2,3]; x")
+      assert 3 == Opal.run("[1, _, x] = [1,2,3]; x")
+
+      # Head/Tail
+      assert 1 == Opal.run("[h | _] = [1,2,3]; h")
+      assert [2, 3] == Opal.run("[_ | t] = [1,2,3]; t")
+      assert [3, 4, 5] == Opal.run("[_, _ | rest] = [1,2,3,4,5]; rest")
+
+      # Use variables
+      assert {1, [2, 3]} == Opal.run("[a | b] = [1,2,3]; {a, b}")
+      assert {1, 2, [3]} == Opal.run("[x, y | z] = [1,2,3]; {x, y, z}")
+
+      # Nested lists
+      assert 4 == Opal.run("[[_, x] | _] = [[3,4], [5,6]]; x")
+      assert [5, 6] == Opal.run("[_ | [y]] = [[3,4], [5,6]]; y")
+    end
+
+    test "pattern matching tuples" do
+      # Basic variables
+      assert {1, 2} == Opal.run("{x, y} = {1, 2}")
+      assert 1 == Opal.run("{x, _} = {1, 2}; x")
+      assert 2 == Opal.run("{_, y} = {1, 2}; y")
+
+      # Tuple with different types
+      assert {:ok, 42} == Opal.run("{status, value} = {:ok, 42}; {status, value}")
+      assert ~c"hello" == Opal.run("{:ok, msg} = {:ok, \"hello\"}; msg")
+      assert :error == Opal.run("{status, _} = {:error, \"failed\"}; status")
     end
 
     test "nil" do
@@ -66,7 +108,7 @@ defmodule Opal.CompilerTest do
     test "cons lists and lists are equivalent" do
       assert Opal.run("[1,2,3,4]") == Opal.run("[1 | [2 | [3 | [4 | []]]]]")
       assert Opal.run("[1, [2 | [3 | [4 | []]]]]") == Opal.run("[1 | [[2,3,4]]]")
-      # assert [1, 2, 3, 4] == Opal.run("[1, 2 | [3,4]]")
+      assert [1, 2, 3, 4] == Opal.run("[1, 2 | [3,4]]")
     end
 
     test "tuples" do
@@ -108,8 +150,8 @@ defmodule Opal.CompilerTest do
     end
 
     test "handles error cases" do
-      # ast = {:unknown_node_type, 42}
-      # assert {:error, _} = Compiler.generate_core(ast)
+      # We cannot read the wildcard
+      assert {:error, _, _} = Opal.run("_ = 42; 69; _", compiler_opts: [])
     end
   end
 end
