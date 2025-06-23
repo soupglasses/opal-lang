@@ -139,6 +139,17 @@ defmodule Opal.CompilerTest do
       assert false == Opal.run("1 != 1")
     end
 
+    test "function argument order" do
+      assert true ==
+               Opal.run("""
+               fn leq(l, r) do
+                 l <= r
+               end
+
+               leq(1, 2)
+               """)
+    end
+
     test "run external funcs" do
       assert 0.00000 == Float.round(Opal.run("pi = :math.pi(); :math.sin(pi)"), 5)
       # assert 0.00000 == Float.round(Opal.run(":math.sin(:math.pi())"), 5)
@@ -147,6 +158,26 @@ defmodule Opal.CompilerTest do
     test "run internal funcs" do
       assert 42 == Opal.run("fn answer_to_everything() do 42 end answer_to_everything()")
       assert 42 == Opal.run("fn answer_to_everything(x) do x end answer_to_everything(42)")
+    end
+
+    test "pattern matching in funcs" do
+      assert 10 ==
+               Opal.run("""
+                 fn length([]) do 0 end
+                 fn length([_|t]) do 1 + length(t) end
+
+                 length([1,2,3,4,5,6,7,8,9,10])
+               """)
+
+      assert [4, 3, 2, 1] ==
+               Opal.run("""
+                 fn reverse([], acc) do acc end
+                 fn reverse([head | tail], acc) do
+                    reverse(tail, [head | acc])
+                 end
+
+                 reverse([1,2,3,4], [])
+               """)
     end
 
     test "handles error cases" do

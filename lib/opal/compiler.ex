@@ -204,11 +204,6 @@ defmodule Opal.Compiler do
   defp generate_core({:patterns, patterns}, env0) do
     {patterns_eval, env1} =
       Enum.reduce(patterns, {[], env0}, fn
-        {:var, _, :_}, {patterns, env_acc} ->
-          with {wildcard_eval, env_new} <- new_c_var(env_acc) do
-            {patterns ++ [wildcard_eval], env_new}
-          end
-
         pattern, {patterns, env_acc} ->
           with {pattern_eval, env_new} <- generate_core(pattern, env_acc) do
             {patterns ++ [pattern_eval], env_new}
@@ -310,7 +305,7 @@ defmodule Opal.Compiler do
       {ann_c_apply(
          ann(loc, env1),
          ann_c_fname(ann(name_pos, env1), name, arity),
-         c_vars
+         Enum.reverse(c_vars)
        ), env1}
 
     {body_eval, env3} =
@@ -335,7 +330,7 @@ defmodule Opal.Compiler do
          ann(loc, env2),
          module_expr,
          ann_c_atom(ann(name_pos, env2), name),
-         c_vars
+         Enum.reverse(c_vars)
        ), env2}
 
     {body_eval, env4} =
