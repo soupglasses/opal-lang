@@ -241,6 +241,21 @@ defmodule Opal.Compiler do
     end
   end
 
+  defp generate_core({:if, loc, {cond, if_true, if_false}}, env) do
+    with {cond_eval, env0} = generate_core(cond, env),
+         {true_eval, env1} = generate_core(if_true, env0),
+         {false_eval, env2} = generate_core(if_false, env1),
+         {badarg_clause, env3} = error_clause({:badarg, 1}, env2),
+         {badmatch_clause, env4} = default_clause({:badmatch, 1}, env3) do
+      {ann_c_case(ann(loc, env4), cond_eval, [
+         c_clause([{:c_literal, [], true}], true_eval),
+         c_clause([{:c_literal, [], false}], false_eval),
+         badarg_clause,
+         badmatch_clause
+       ]), env4}
+    end
+  end
+
   # For empty patterns and args.
   defp generate_core([], env) do
     {[], env}

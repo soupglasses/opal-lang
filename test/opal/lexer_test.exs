@@ -122,9 +122,37 @@ defmodule Opal.LexerTest do
       assert Lexer.tokenize("nil") == {:ok, [{nil, {1, 1}}]}
     end
 
-    # TODO: Module Identifiers
-    # TODO: Functions
-    # TODO: Function calls
+    test "tokenizes if conditions" do
+      assert Lexer.tokenize("if true then 42 else 69 end") ==
+               {:ok,
+                [
+                  {:if, {1, 1}},
+                  {:bool, {1, 4}, true},
+                  {:then, {1, 9}},
+                  {:int, {1, 14}, 42},
+                  {:else, {1, 17}},
+                  {:int, {1, 22}, 69},
+                  {:end, {1, 25}}
+                ]}
+
+      assert Lexer.tokenize("if (10 <= 20) then 42 else 69 end") ==
+               {
+                 :ok,
+                 [
+                   {:if, {1, 1}},
+                   {:"(", {1, 4}},
+                   {:int, {1, 5}, 10},
+                   {:<=, {1, 8}},
+                   {:int, {1, 11}, 20},
+                   {:")", {1, 13}},
+                   {:then, {1, 15}},
+                   {:int, {1, 20}, 42},
+                   {:else, {1, 23}},
+                   {:int, {1, 28}, 69},
+                   {:end, {1, 31}}
+                 ]
+               }
+    end
 
     test "handles error cases" do
       # integers cannot start with a zero

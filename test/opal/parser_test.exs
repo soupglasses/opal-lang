@@ -182,6 +182,27 @@ defmodule Opal.ParserTest do
                 ]}
     end
 
+    test "parses if conditions" do
+      assert Parser.parse(Lexer.tokenize!("if true then 42 else 69 end")) ==
+               {:ok,
+                [
+                  [
+                    {:if, {1, 1},
+                     {{:bool, {1, 4}, true}, [{:int, {1, 14}, 42}], [{:int, {1, 22}, 69}]}}
+                  ]
+                ]}
+
+      assert Parser.parse(Lexer.tokenize!("if (10 <= 20) then 42 else 69 end")) ==
+               {:ok,
+                [
+                  [
+                    {:if, {1, 1},
+                     {{{:<=, {1, 8}}, {:int, {1, 5}, 10}, {:int, {1, 11}, 20}},
+                      [{:int, {1, 20}, 42}], [{:int, {1, 28}, 69}]}}
+                  ]
+                ]}
+    end
+
     test "parses variable references" do
     end
 

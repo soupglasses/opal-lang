@@ -52,7 +52,7 @@ statements -> statement : ['$1'].
 statements -> statement ';' statements : ['$1' | '$3'].
 
 statement -> 'if' expr 'then' statements 'else' statements 'end' :
-    {'if', pos('$2'), {'$2', '$4', '$6'}}.
+    {'if', pos('$1'), {'$2', '$4', '$6'}}.
 statement -> 'while' expr 'do' statements 'end' :
     {while, pos('$2'), {'$2', '$4'}}.
 statement -> pattern '=' expr :

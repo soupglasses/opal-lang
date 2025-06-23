@@ -83,6 +83,12 @@ defmodule Opal.CompilerTest do
       assert false == Opal.run("false and 1 / 0", compiler_opts: [])
     end
 
+    test "if conditions" do
+      assert 42 == Opal.run("if true then 42 else 69 end")
+      assert 69 == Opal.run("if false then 42 else 69 end")
+      assert 42 == Opal.run("if 1 == 1 then 42 else 69 end")
+    end
+
     test "lists" do
       assert [] == Opal.run("[]")
       assert [1] == Opal.run("[1]")
@@ -183,6 +189,10 @@ defmodule Opal.CompilerTest do
     test "handles error cases" do
       # We cannot read the wildcard
       assert {:error, _, _} = Opal.run("_ = 42; 69; _", compiler_opts: [])
+      # Ensure bad arguments throw runtime error.
+      assert_raise ArgumentError, fn ->
+        Opal.run("if 42 then 42 else 69 end", compiler_opts: [])
+      end
     end
   end
 end
