@@ -5,11 +5,10 @@ module Fibonacci do
     fib(x - 1) + fib(x - 2)
   end
 
-  fn main(args) do
-    :io.put_chars(
-      :erlang.integer_to_list(fib(
-        :erlang.list_to_integer(:erlang.hd(args))
-      ))
+  fn main([]) do main(["10"]) end
+  fn main([num]) do
+    :io.format("~p~n",
+      [fib(:erlang.list_to_integer(num))]
     )
   end
 end
