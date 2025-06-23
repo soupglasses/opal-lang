@@ -87,6 +87,10 @@ defmodule Opal.CompilerTest do
       assert 42 == Opal.run("if true then 42 else 69 end")
       assert 69 == Opal.run("if false then 42 else 69 end")
       assert 42 == Opal.run("if 1 == 1 then 42 else 69 end")
+
+      # Conditions are short-circuiting.
+      assert 42 == Opal.run("if true then 42 else 1 / 0 end", compiler_opts: [])
+      assert 69 == Opal.run("if false then 1 / 0 else 69 end", compiler_opts: [])
     end
 
     test "lists" do
