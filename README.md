@@ -1,6 +1,8 @@
 # Opal
 
-A language inspired by Ruby and Elixir, and which compiles to BEAM VM.
+A language inspired by Ruby and Elixir.
+
+Compiles to BEAM for easy interoperatbility with other BEAM languages (Erlang, Elixir).
 
 ## Example
 
@@ -26,17 +28,20 @@ sudo zypper install elixir # for SUSE/openSUSE
 ## Running
 
 Run a file:
+
 ```bash
 $ mix opal examples/the_answer.opal
 42
 ```
 
 Compile a file:
+
 ```bash
-$ mix opal --compile examples/the_answer.opal
+mix opal --compile examples/the_answer.opal
 ```
 
 Run code directly from Elixir:
+
 ```bash
 $ iex -S mix
 iex(1)> Opal.run("fn the_answer_to_everything() do 42 end the_answer_to_everything()")
@@ -52,6 +57,7 @@ MIX_ENV=prod mix do escript.build + escript.install
 This will install opal to `~/.mix/escripts/opal`. Ensure `~/.mix/escripts` is in your `$PATH`.
 
 To uninstall:
+
 ```bash
 MIX_ENV=prod mix escript.uninstall opal
 ```
