@@ -1,0 +1,2 @@
+# HACK: Highlight Opal as Elixir code, as it is the closest syntactically.
+*.opal linguist-language=Elixir
